@@ -4,74 +4,124 @@
 
     <!-- Hero Section -->
     <section class="hero-section">
-      <v-parallax
-        src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2250&q=80"
-        height="600"
-      >
-        <div class="hero-overlay"></div>
-        <v-container class="h-100">
-          <v-row class="h-100" align="center">
-            <v-col cols="12" md="8" lg="6">
-              <h1 class="text-h2 font-weight-bold text-white mb-4">
-                Experience the Magic of Cinema
+      <v-container class="h-100">
+        <v-row class="h-100" align="center">
+          <v-col cols="12" md="6" lg="5">
+            <div class="hero-content">
+              <h1 class="text-h2 font-weight-bold mb-6">
+                Experience Movies Like Never Before
               </h1>
-              <p class="text-h6 text-white mb-6">
-                Book your favorite movies and enjoy the best theatrical
-                experience
+              <p class="text-body-1 text-medium-emphasis mb-8">
+                Book your tickets for the latest movies in premium theaters.
+                Immerse yourself in stunning visuals and crystal-clear sound.
               </p>
+              <div class="d-flex flex-wrap">
+                <v-btn
+                  color="primary"
+                  size="large"
+                  rounded="pill"
+                  class="text-none px-8 mr-4 mb-4"
+                  elevation="2"
+                  @click="scrollToMovies"
+                >
+                  Browse Movies
+                  <v-icon class="ml-2">mdi-arrow-right</v-icon>
+                </v-btn>
+                <v-btn
+                  variant="outlined"
+                  size="large"
+                  rounded="pill"
+                  class="text-none px-8 mb-4"
+                  @click="showComingSoon"
+                >
+                  Coming Soon
+                </v-btn>
+              </div>
+            </div>
+          </v-col>
+          <v-col
+            cols="12"
+            md="6"
+            lg="7"
+            class="d-none d-md-flex justify-center"
+          >
+            <v-img
+              src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+              max-width="600"
+              class="hero-image rounded-xl"
+            ></v-img>
+          </v-col>
+        </v-row>
+      </v-container>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+      <v-container>
+        <v-card
+          class="search-card mx-auto"
+          :elevation="theme.global.current.value.dark ? 0 : 3"
+          :class="theme.global.current.value.dark ? 'bg-surface' : 'bg-white'"
+          rounded="lg"
+        >
+          <v-row class="pa-4" align="center">
+            <v-col cols="12" md="5">
+              <v-text-field
+                v-model="searchQuery"
+                prepend-inner-icon="mdi-magnify"
+                label="Search movies, theaters..."
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                class="search-input"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-select
+                v-model="selectedGenre"
+                :items="genres"
+                label="Genre"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                class="search-input"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
               <v-btn
                 color="primary"
-                size="x-large"
-                rounded="pill"
-                class="text-none px-8"
-                @click="scrollToMovies"
+                block
+                size="large"
+                elevation="0"
+                @click="searchMovies"
               >
-                Browse Movies
-                <v-icon class="ml-2">mdi-arrow-right</v-icon>
+                Search
               </v-btn>
             </v-col>
           </v-row>
-        </v-container>
-      </v-parallax>
+        </v-card>
+      </v-container>
     </section>
 
-    <v-container class="mt-15">
-      <!-- Search and Filter Section -->
-      <v-row class="mb-8">
-        <v-col cols="12" sm="6" md="4">
-          <v-text-field
-            v-model="searchQuery"
-            prepend-inner-icon="mdi-magnify"
-            label="Search movies"
-            variant="outlined"
-            rounded="pill"
-            hide-details
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="6" md="4">
-          <v-select
-            v-model="selectedGenre"
-            :items="genres"
-            label="Filter by genre"
-            variant="outlined"
-            rounded="pill"
-            hide-details
-          ></v-select>
-        </v-col>
-      </v-row>
-
+    <v-container class="main-content py-12">
       <!-- Featured Movies Section -->
       <section id="featured" class="mb-15">
         <div class="d-flex align-center justify-space-between mb-8">
-          <h2 class="text-h4 font-weight-bold">Featured Movies</h2>
+          <div>
+            <h2 class="text-h4 font-weight-bold mb-2">Featured Movies</h2>
+            <p class="text-body-1 text-medium-emphasis">
+              Handpicked movies you'll love
+            </p>
+          </div>
           <v-btn
-            variant="text"
+            variant="outlined"
             color="primary"
-            class="text-none"
+            class="text-none px-6"
+            rounded="pill"
             @click="showAllMovies"
           >
             View All
-            <v-icon class="ml-1">mdi-chevron-right</v-icon>
+            <v-icon class="ml-2">mdi-chevron-right</v-icon>
           </v-btn>
         </div>
 
@@ -91,7 +141,14 @@
 
       <!-- Now Showing Section -->
       <section id="now-showing" class="mb-15">
-        <h2 class="text-h4 font-weight-bold mb-8">Now Showing</h2>
+        <div class="d-flex align-center justify-space-between mb-8">
+          <div>
+            <h2 class="text-h4 font-weight-bold mb-2">Now Showing</h2>
+            <p class="text-body-1 text-medium-emphasis">
+              Book your tickets now
+            </p>
+          </div>
+        </div>
 
         <div v-if="loading" class="d-flex justify-center py-12">
           <v-progress-circular
@@ -115,28 +172,45 @@
         </v-row>
       </section>
 
-      <!-- Newsletter Section -->
-      <section class="newsletter-section pa-8 rounded-lg mb-15">
-        <v-row align="center" justify="center">
-          <v-col cols="12" md="8" class="text-center">
-            <h2 class="text-h4 font-weight-bold mb-4">Stay Updated</h2>
-            <p class="text-body-1 mb-8">
-              Subscribe to our newsletter for the latest movie updates and
-              exclusive offers
+      <!-- Promotion Section -->
+      <section
+        class="promotion-section rounded-xl mb-15 overflow-hidden"
+        :style="promotionSectionStyle"
+      >
+        <v-row no-gutters>
+          <v-col cols="12" md="6" class="pa-12">
+            <h2 class="text-h3 font-weight-bold mb-4">Get Special Offers</h2>
+            <p class="text-h6 mb-8 text-medium-emphasis">
+              Subscribe to our newsletter and get exclusive movie deals,
+              updates, and more!
             </p>
-            <v-row justify="center">
-              <v-col cols="12" sm="8" md="6">
-                <v-text-field
-                  v-model="email"
-                  label="Enter your email"
-                  variant="outlined"
-                  rounded="pill"
-                  append-inner-icon="mdi-send"
-                  hide-details
-                  @click:append-inner="subscribeNewsletter"
-                ></v-text-field>
-              </v-col>
-            </v-row>
+            <div class="d-flex flex-wrap">
+              <v-text-field
+                v-model="email"
+                placeholder="Enter your email"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                class="flex-grow-1 mr-4 mb-4"
+                style="max-width: 300px"
+              ></v-text-field>
+              <v-btn
+                color="primary"
+                size="large"
+                elevation="0"
+                @click="subscribeNewsletter"
+                class="mb-4"
+              >
+                Subscribe
+              </v-btn>
+            </div>
+          </v-col>
+          <v-col cols="12" md="6" class="position-relative">
+            <v-img
+              src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+              height="100%"
+              cover
+            ></v-img>
           </v-col>
         </v-row>
       </section>
@@ -158,19 +232,13 @@
 
         <v-card-text class="pa-4">
           <p class="text-body-1">
-            Booking functionality will be implemented when the backend is ready.
+            Booking functionality will be implemented soon.
           </p>
         </v-card-text>
 
         <v-card-actions class="pa-4">
           <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            variant="flat"
-            rounded="pill"
-            class="px-6"
-            @click="bookingDialog = false"
-          >
+          <v-btn color="primary" variant="text" @click="bookingDialog = false">
             Close
           </v-btn>
         </v-card-actions>
@@ -183,10 +251,12 @@
 import { ref, computed, onMounted } from "vue";
 import { useMovieStore } from "@/store/movies";
 import { useMovies } from "@/composables/useMovies";
+import { useTheme } from "vuetify";
 import MovieCard from "@/components/MovieCard.vue";
 import Navbar from "@/components/Navbar.vue";
 
 const store = useMovieStore();
+const theme = useTheme();
 const { searchQuery, selectedGenre, filterMovies } = useMovies();
 
 const bookingDialog = ref(false);
@@ -225,10 +295,24 @@ const showAllMovies = () => {
   });
 };
 
+const showComingSoon = () => {
+  // TODO: Implement coming soon navigation
+};
+
+const searchMovies = () => {
+  // TODO: Implement search functionality
+};
+
 const subscribeNewsletter = () => {
   // TODO: Implement newsletter subscription
   console.log("Subscribe:", email.value);
 };
+
+const promotionSectionStyle = computed(() => ({
+  background: theme.global.current.value.dark
+    ? "rgb(var(--v-theme-surface-variant))"
+    : "rgb(var(--v-theme-background))",
+}));
 
 onMounted(async () => {
   await store.fetchMovies();
@@ -238,42 +322,40 @@ onMounted(async () => {
 <style scoped>
 .home-page {
   min-height: 100vh;
-  background: rgb(var(--v-theme-background));
 }
 
 .hero-section {
-  position: relative;
-  margin-top: -64px; /* Adjust for navbar height */
+  min-height: calc(100vh - 70px);
+  padding: 40px 0;
+  display: flex;
+  align-items: center;
 }
 
-.hero-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    45deg,
-    rgba(0, 0, 0, 0.7) 0%,
-    rgba(0, 0, 0, 0.4) 100%
-  );
-  z-index: 1;
+.hero-image {
+  transform: perspective(1000px) rotateY(-15deg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-:deep(.v-parallax__content) {
-  z-index: 2;
+.search-section {
+  margin-bottom: 40px;
 }
 
-.newsletter-section {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--v-theme-primary)) 0%,
-    rgba(var(--v-theme-primary), 0.8) 100%
-  );
-  color: white;
+.search-card {
+  max-width: 1000px;
 }
 
-.v-container {
+.promotion-section {
+  /* background color is handled by computed style */
+}
+
+.main-content {
   max-width: 1440px;
+}
+
+@media (max-width: 959px) {
+  .hero-section {
+    min-height: auto;
+    padding: 60px 0;
+  }
 }
 </style>
