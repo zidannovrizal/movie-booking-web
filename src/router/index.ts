@@ -9,6 +9,19 @@ const router = createRouter({
       component: () => import("@/pages/index.vue"),
     },
     {
+      path: "/movies",
+      children: [
+        {
+          path: "",
+          component: () => import("@/pages/movies/index.vue"),
+        },
+        {
+          path: ":id",
+          component: () => import("@/pages/movies/[id].vue"),
+        },
+      ],
+    },
+    {
       path: "/auth",
       children: [
         {
@@ -23,15 +36,34 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: "/my-tickets",
+      component: () => import("@/pages/my-tickets.vue"),
+      meta: { requiresAuth: true },
+    },
   ],
 });
 
 // Navigation guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const requiresGuest = to.matched.some((record) => record.meta.requiresGuest);
 
-  if (requiresGuest && authStore.isAuthenticated) {
+  // If we have a token but no user, try to fetch the user
+  if (authStore.token && !authStore.user) {
+    try {
+      await authStore.fetchCurrentUser();
+    } catch (error) {
+      authStore.logout();
+      next("/auth/login");
+      return;
+    }
+  }
+
+  if (requiresAuth && !authStore.isAuthenticated) {
+    next("/auth/login");
+  } else if (requiresGuest && authStore.isAuthenticated) {
     next("/");
   } else {
     next();

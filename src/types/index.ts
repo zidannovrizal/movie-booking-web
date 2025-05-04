@@ -20,20 +20,20 @@ export interface User {
   name: string;
   phoneNumber?: string;
   role: UserRole;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Movie {
-  id: string;
+  id: number;
   title: string;
-  description: string;
-  duration: number;
-  genre: string;
-  releaseDate: Date;
-  status: MovieStatus;
-  posterUrl: string;
-  trailerUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  overview: string;
+  poster_path: string;
+  backdrop_path: string;
+  release_date: string;
+  vote_average: number;
+  runtime?: number;
+  genres?: { id: number; name: string }[];
 }
 
 export interface Theater {
@@ -43,19 +43,20 @@ export interface Theater {
   city: string;
   address: string;
   facilities: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  capacity: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ShowTime {
   id: string;
-  movieId: string;
+  tmdbMovieId: number;
   theaterId: string;
-  startTime: Date;
-  endTime: Date;
+  startTime: string;
   price: number;
-  movie: Movie;
   theater: Theater;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Booking {
@@ -65,39 +66,14 @@ export interface Booking {
   seats: string[];
   totalPrice: number;
   status: BookingStatus;
-  createdAt: Date;
-  updatedAt: Date;
   showTime: ShowTime;
-  user: User;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface CreateMovieDto {
-  title: string;
-  synopsis: string;
-  description: string;
-  duration: number;
-  rating: string;
-  releaseDate: Date;
-  status: MovieStatus;
-  posterUrl: string;
-  trailerUrl?: string;
-  cast: string[];
-  director: string;
-  genre: string[];
-  language?: string;
-  subtitles: string[];
-}
-
-export interface UpdateMovieDto {
-  title?: string;
-  description?: string;
-  duration?: number;
-  genre?: string;
-  releaseDate?: Date;
-  status?: MovieStatus;
-  posterUrl?: string;
-  trailerUrl?: string;
-}
+export interface CreateMovieDto
+  extends Omit<Movie, "id" | "createdAt" | "updatedAt"> {}
+export interface UpdateMovieDto extends Partial<CreateMovieDto> {}
 
 export interface CreateTheaterDto {
   name: string;

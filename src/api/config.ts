@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = process.env.VUE_APP_API_URL || "http://localhost:3000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -9,7 +9,7 @@ const api = axios.create({
   },
 });
 
-// Add a request interceptor for authentication
+// Add a request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -19,6 +19,24 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add a response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Only redirect on 401s that aren't from auth endpoints
+    if (
+      error.response?.status === 401 &&
+      !error.config.url?.includes("/auth/login") &&
+      !error.config.url?.includes("/auth/signup")
+    ) {
+      // Handle unauthorized access
+      localStorage.removeItem("token");
+      window.location.href = "/auth/login";
+    }
     return Promise.reject(error);
   }
 );

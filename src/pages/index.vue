@@ -27,15 +27,6 @@
                   Browse Movies
                   <v-icon class="ml-2">mdi-arrow-right</v-icon>
                 </v-btn>
-                <v-btn
-                  variant="outlined"
-                  size="large"
-                  rounded="pill"
-                  class="text-none px-8 mb-4"
-                  @click="showComingSoon"
-                >
-                  Coming Soon
-                </v-btn>
               </div>
             </div>
           </v-col>
@@ -65,29 +56,19 @@
           rounded="lg"
         >
           <v-row class="pa-4" align="center">
-            <v-col cols="12" md="5">
+            <v-col cols="12" md="8">
               <v-text-field
                 v-model="searchQuery"
                 prepend-inner-icon="mdi-magnify"
-                label="Search movies, theaters..."
+                label="Search movies..."
                 variant="outlined"
                 density="comfortable"
                 hide-details
                 class="search-input"
+                @keyup.enter="searchMovies"
               ></v-text-field>
             </v-col>
             <v-col cols="12" md="4">
-              <v-select
-                v-model="selectedGenre"
-                :items="genres"
-                label="Genre"
-                variant="outlined"
-                density="comfortable"
-                hide-details
-                class="search-input"
-              ></v-select>
-            </v-col>
-            <v-col cols="12" md="3">
               <v-btn
                 color="primary"
                 block
@@ -104,41 +85,6 @@
     </section>
 
     <v-container class="main-content py-12">
-      <!-- Featured Movies Section -->
-      <section id="featured" class="mb-15">
-        <div class="d-flex align-center justify-space-between mb-8">
-          <div>
-            <h2 class="text-h4 font-weight-bold mb-2">Featured Movies</h2>
-            <p class="text-body-1 text-medium-emphasis">
-              Handpicked movies you'll love
-            </p>
-          </div>
-          <v-btn
-            variant="outlined"
-            color="primary"
-            class="text-none px-6"
-            rounded="pill"
-            @click="showAllMovies"
-          >
-            View All
-            <v-icon class="ml-2">mdi-chevron-right</v-icon>
-          </v-btn>
-        </div>
-
-        <v-row>
-          <v-col
-            v-for="movie in featuredMovies"
-            :key="movie.id"
-            cols="12"
-            sm="6"
-            md="4"
-            lg="3"
-          >
-            <MovieCard :movie="movie" @book="handleBooking(movie)" />
-          </v-col>
-        </v-row>
-      </section>
-
       <!-- Now Showing Section -->
       <section id="now-showing" class="mb-15">
         <div class="d-flex align-center justify-space-between mb-8">
@@ -167,16 +113,13 @@
             md="4"
             lg="3"
           >
-            <MovieCard :movie="movie" @book="handleBooking(movie)" />
+            <MovieCard :movie="movie" />
           </v-col>
         </v-row>
       </section>
 
       <!-- Promotion Section -->
-      <section
-        class="promotion-section rounded-xl mb-15 overflow-hidden"
-        :style="promotionSectionStyle"
-      >
+      <section class="promotion-section rounded-xl mb-15 overflow-hidden">
         <v-row no-gutters>
           <v-col cols="12" md="6" class="pa-12">
             <h2 class="text-h3 font-weight-bold mb-4">Get Special Offers</h2>
@@ -215,35 +158,6 @@
         </v-row>
       </section>
     </v-container>
-
-    <!-- Booking Dialog -->
-    <v-dialog v-model="bookingDialog" max-width="500">
-      <v-card class="rounded-lg">
-        <v-card-title class="text-h5 pa-4">
-          Book Tickets
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            class="float-right"
-            @click="bookingDialog = false"
-          ></v-btn>
-        </v-card-title>
-
-        <v-card-text class="pa-4">
-          <p class="text-body-1">
-            Booking functionality will be implemented soon.
-          </p>
-        </v-card-text>
-
-        <v-card-actions class="pa-4">
-          <v-spacer></v-spacer>
-          <v-btn color="primary" variant="text" @click="bookingDialog = false">
-            Close
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
@@ -259,55 +173,25 @@ import Navbar from "@/components/Navbar.vue";
 const theme = useTheme();
 const movieStore = useMovieStore();
 const authStore = useAuthStore();
-const { searchQuery, selectedGenre, filterMovies } = useMovies();
+const { searchQuery, filterMovies } = useMovies();
 
-const bookingDialog = ref(false);
-const selectedMovie = ref(null);
 const email = ref("");
 
-const movies = computed(() => movieStore.movies);
 const loading = computed(() => movieStore.loading);
-const featuredMovies = computed(() => movieStore.getFeaturedMovies);
+const filteredMovies = computed(() => {
+  return filterMovies(movieStore.movies);
+});
 const error = computed(() => movieStore.error);
 
-const filteredMovies = computed(() => {
-  return filterMovies(movies.value);
-});
-
-const genres = computed(() => {
-  const uniqueGenres = new Set(movies.value.map((movie) => movie.genre));
-  return ["All", ...Array.from(uniqueGenres)];
-});
-
-const handleBooking = (movie) => {
-  if (!authStore.isAuthenticated) {
-    // Redirect to login or show login dialog
-    return;
-  }
-  selectedMovie.value = movie;
-  bookingDialog.value = true;
-};
-
 const scrollToMovies = () => {
-  document.getElementById("featured")?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-};
-
-const showAllMovies = () => {
   document.getElementById("now-showing")?.scrollIntoView({
     behavior: "smooth",
     block: "start",
   });
 };
 
-const showComingSoon = async () => {
-  await movieStore.fetchComingSoonMovies();
-};
-
 const searchMovies = async () => {
-  await movieStore.fetchMovies();
+  await movieStore.searchMovies(searchQuery.value);
 };
 
 const subscribeNewsletter = () => {
@@ -315,14 +199,17 @@ const subscribeNewsletter = () => {
   console.log("Subscribe:", email.value);
 };
 
-const promotionSectionStyle = computed(() => ({
-  background: theme.global.current.value.dark
-    ? "rgb(var(--v-theme-surface-variant))"
-    : "rgb(var(--v-theme-background))",
-}));
-
 onMounted(async () => {
-  await movieStore.fetchMovies();
+  try {
+    if (authStore.user?.role === "ADMIN") {
+      await movieStore.syncNowPlayingMovies();
+    } else {
+      await movieStore.fetchMovies();
+    }
+  } catch (error) {
+    console.error("Error initializing movies:", error);
+  }
+
   if (authStore.token) {
     await authStore.fetchCurrentUser();
   }

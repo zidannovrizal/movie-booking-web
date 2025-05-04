@@ -38,12 +38,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useAuthStore } from "@/store/auth";
+import { useRouter } from "vue-router";
 
 const emit = defineEmits<{
   (e: "success"): void;
   (e: "error", error: string): void;
 }>();
 
+const router = useRouter();
 const authStore = useAuthStore();
 
 const form = ref<any>(null);
@@ -64,13 +66,19 @@ const handleSubmit = async () => {
   loading.value = true;
 
   try {
+    // Login
     await authStore.login({
       email: email.value,
       password: password.value,
     });
-    emit("success");
+    // Only navigate on success
+    await router.replace("/");
   } catch (err: any) {
-    emit("error", err?.response?.data?.error || "Failed to login");
+    console.error("Login error:", err);
+    emit(
+      "error",
+      err?.response?.data?.error || err.message || "Failed to login"
+    );
   } finally {
     loading.value = false;
   }

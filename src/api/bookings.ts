@@ -7,18 +7,33 @@ interface CreateBookingDto {
 }
 
 export const bookingApi = {
-  // Create new booking
-  createBooking: (booking: CreateBookingDto) =>
-    api.post<Booking>("/bookings", booking),
+  // Get user's tickets
+  getMyTickets: () => api.get<Booking[]>("/bookings/my-tickets"),
+
+  // Create a new booking
+  createBooking: (data: {
+    movieId: number;
+    showTimeId: number;
+    seats: string[];
+  }) => api.post<Booking>("/bookings", data),
 
   // Get user's bookings
-  getUserBookings: () => api.get<Booking[]>("/bookings/my-bookings"),
+  getUserBookings: async () => {
+    const response = await api.get<Booking[]>("/bookings/my-bookings");
+    return response.data;
+  },
 
   // Get booking by id
-  getBookingById: (id: string) => api.get<Booking>(`/bookings/${id}`),
+  getBookingById: async (id: string) => {
+    const response = await api.get<Booking>(`/bookings/${id}`);
+    return response.data;
+  },
 
   // Cancel booking
-  cancelBooking: (id: string) => api.put<Booking>(`/bookings/${id}/cancel`),
+  cancelBooking: async (id: string) => {
+    const response = await api.delete<Booking>(`/bookings/${id}`);
+    return response.data;
+  },
 
   // Get all bookings (admin only)
   getAllBookings: () => api.get<Booking[]>("/bookings/all"),

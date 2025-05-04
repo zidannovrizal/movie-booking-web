@@ -48,8 +48,14 @@ import SignupForm from "@/components/auth/SignupForm.vue";
 const router = useRouter();
 const error = ref("");
 
-const handleSuccess = () => {
-  router.push("/");
+const handleSuccess = async () => {
+  try {
+    await router.replace("/");
+  } catch (err) {
+    console.error("Navigation error:", err);
+    error.value =
+      "Registration successful but navigation failed. Please try again.";
+  }
 };
 
 const handleError = (message: string) => {

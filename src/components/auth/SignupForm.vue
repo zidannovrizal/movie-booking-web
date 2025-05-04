@@ -83,7 +83,7 @@ const handleSubmit = async () => {
   loading.value = true;
 
   try {
-    await authStore.signup({
+    await authStore.register({
       name: name.value,
       email: email.value,
       password: password.value,

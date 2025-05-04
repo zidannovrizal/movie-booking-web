@@ -1,12 +1,22 @@
 import { defineStore } from "pinia";
-import axios from "axios";
+import type { User } from "@/types";
+import api from "@/api/config";
 
-interface User {
-  id: string;
+interface LoginPayload {
   email: string;
+  password: string;
+}
+
+interface RegisterPayload {
+  email: string;
+  password: string;
   name: string;
   phoneNumber?: string;
-  role: "USER" | "ADMIN";
+}
+
+interface AuthResponse {
+  user: User;
+  token: string;
 }
 
 interface AuthState {
@@ -15,20 +25,6 @@ interface AuthState {
   loading: boolean;
   error: string | null;
 }
-
-interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-interface SignupPayload {
-  email: string;
-  password: string;
-  name: string;
-  phoneNumber?: string;
-}
-
-const API_URL = "http://localhost:3001/api";
 
 export const useAuthStore = defineStore("auth", {
   state: (): AuthState => ({
@@ -44,19 +40,26 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
+    setAuthHeader() {
+      if (this.token) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${this.token}`;
+      } else {
+        delete api.defaults.headers.common["Authorization"];
+      }
+    },
+
     async login(payload: LoginPayload) {
       this.loading = true;
       this.error = null;
       try {
-        const response = await axios.post(`${API_URL}/auth/login`, payload);
-        const { user, token } = response.data;
+        const { data } = await api.post<AuthResponse>("/auth/login", payload);
 
-        this.user = user;
-        this.token = token;
-        localStorage.setItem("token", token);
+        this.user = data.user;
+        this.token = data.token;
+        localStorage.setItem("token", data.token);
+        this.setAuthHeader();
 
-        // Set axios default header
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        return data.user;
       } catch (error: any) {
         this.error = error.response?.data?.error || "Login failed";
         throw error;
@@ -65,46 +68,58 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async signup(payload: SignupPayload) {
+    async register(payload: RegisterPayload) {
       this.loading = true;
       this.error = null;
       try {
-        console.log("Signup payload:", payload);
-        const response = await axios.post(`${API_URL}/auth/signup`, payload);
-        const { user, token } = response.data;
+        const { data } = await api.post<AuthResponse>("/auth/signup", payload);
 
-        this.user = user;
-        this.token = token;
-        localStorage.setItem("token", token);
+        this.user = data.user;
+        this.token = data.token;
+        localStorage.setItem("token", data.token);
+        this.setAuthHeader();
 
-        // Set axios default header
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        return data.user;
       } catch (error: any) {
-        this.error = error.response?.data?.error || "Signup failed";
+        this.error = error.response?.data?.error || "Registration failed";
         throw error;
       } finally {
         this.loading = false;
       }
     },
 
-    async logout() {
+    logout() {
       this.user = null;
       this.token = "";
       localStorage.removeItem("token");
-      delete axios.defaults.headers.common["Authorization"];
+      this.setAuthHeader();
     },
 
     async fetchCurrentUser() {
-      if (!this.token) return;
+      if (!this.token) return null;
 
       this.loading = true;
       try {
-        const response = await axios.get(`${API_URL}/auth/me`);
-        this.user = response.data;
+        const { data } = await api.get<User>("/auth/me");
+        this.user = data;
+        return data;
       } catch (error) {
+        console.error("Error fetching user:", error);
         this.logout();
+        throw error;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async initialize() {
+      this.setAuthHeader();
+      if (this.token && !this.user) {
+        try {
+          await this.fetchCurrentUser();
+        } catch (error) {
+          this.logout();
+        }
       }
     },
   },

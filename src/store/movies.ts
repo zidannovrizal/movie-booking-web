@@ -11,45 +11,41 @@ export const useMovieStore = defineStore("movies", {
 
   getters: {
     getFeaturedMovies: (state) => state.movies.slice(0, 4),
+    getMovieById: (state) => (id: number) => {
+      return state.movies.find((movie) => movie.id === id);
+    },
+    getNowShowingMovies: (state) => state.movies,
   },
 
   actions: {
     async fetchMovies() {
       this.loading = true;
       try {
-        const response = await movieApi.getAllMovies();
-        this.movies = response.data;
+        const movies = await movieApi.getAllMovies();
+        this.movies = movies;
       } catch (error) {
-        this.error = "Failed to fetch movies";
         console.error("Error fetching movies:", error);
+        this.error = "Failed to fetch movies";
       } finally {
         this.loading = false;
       }
     },
 
-    async fetchNowShowingMovies() {
-      this.loading = true;
+    async fetchMovieById(id: number) {
       try {
-        const response = await movieApi.getNowShowingMovies();
-        this.movies = response.data;
+        return await movieApi.getMovieById(id);
       } catch (error) {
-        this.error = "Failed to fetch now showing movies";
-        console.error("Error fetching now showing movies:", error);
-      } finally {
-        this.loading = false;
+        console.error("Error fetching movie:", error);
+        throw error;
       }
     },
 
-    async fetchComingSoonMovies() {
-      this.loading = true;
+    async searchMovies(query: string) {
       try {
-        const response = await movieApi.getComingSoonMovies();
-        this.movies = response.data;
+        return await movieApi.searchMovies(query);
       } catch (error) {
-        this.error = "Failed to fetch coming soon movies";
-        console.error("Error fetching coming soon movies:", error);
-      } finally {
-        this.loading = false;
+        console.error("Error searching movies:", error);
+        throw error;
       }
     },
   },

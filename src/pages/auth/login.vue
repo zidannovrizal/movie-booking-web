@@ -11,7 +11,7 @@
           </v-card-subtitle>
 
           <v-card-text>
-            <LoginForm @success="handleSuccess" @error="handleError" />
+            <LoginForm @error="handleError" />
 
             <div class="text-center">
               <p class="text-body-2 mb-4">
@@ -47,10 +47,6 @@ import LoginForm from "@/components/auth/LoginForm.vue";
 
 const router = useRouter();
 const error = ref("");
-
-const handleSuccess = () => {
-  router.push("/");
-};
 
 const handleError = (message: string) => {
   error.value = message;

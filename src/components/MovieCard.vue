@@ -1,64 +1,21 @@
 <template>
-  <v-card class="movie-card h-100" :elevation="2">
-    <v-img
-      :src="movie.posterUrl"
-      :alt="movie.title"
-      class="movie-poster"
-      height="300"
-      cover
-    >
-      <template v-slot:placeholder>
-        <v-row class="fill-height ma-0" align="center" justify="center">
-          <v-progress-circular
-            indeterminate
-            color="primary"
-          ></v-progress-circular>
-        </v-row>
-      </template>
-    </v-img>
-
-    <v-card-item>
-      <v-card-title class="text-h6 mb-1">{{ movie.title }}</v-card-title>
-      <v-card-subtitle class="mb-2">
-        <v-chip
-          size="small"
-          :color="movie.status === 'NOW_SHOWING' ? 'success' : 'info'"
-          class="mr-2"
-        >
-          {{ formatStatus(movie.status) }}
-        </v-chip>
-        <v-chip size="small" color="primary" variant="outlined">
-          {{ movie.genre }}
-        </v-chip>
-      </v-card-subtitle>
-      <v-card-text class="text-body-2 text-medium-emphasis">
-        <p class="mb-2">{{ truncateDescription(movie.description) }}</p>
-        <div class="d-flex align-center mt-2">
-          <v-icon size="small" class="mr-1">mdi-clock-outline</v-icon>
-          <span>{{ formatDuration(movie.duration) }}</span>
-        </div>
-      </v-card-text>
-    </v-card-item>
-
-    <v-card-actions class="pa-4 pt-0">
-      <v-spacer></v-spacer>
-      <v-btn
-        color="primary"
-        variant="tonal"
-        class="text-none"
-        @click="$emit('book', movie)"
-      >
-        Book Now
-      </v-btn>
-      <v-btn variant="outlined" class="text-none ml-2" @click="showDetails">
-        Details
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+  <div class="movie-card">
+    <div class="movie-poster" :style="posterStyle">
+      <div class="movie-overlay">
+        <h3 class="movie-title">{{ movie.title }}</h3>
+        <router-link :to="`/movies/${movie.id}`">
+          <v-btn color="primary" variant="flat" class="mt-2">
+            View Details
+          </v-btn>
+        </router-link>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { MovieStatus, type Movie } from "@/types";
+import { computed } from "vue";
 
 const props = defineProps<{
   movie: Movie;
@@ -78,20 +35,26 @@ const formatDuration = (minutes: number) => {
   return `${hours}h ${remainingMinutes}m`;
 };
 
-const truncateDescription = (text: string, length = 100) => {
+const truncateDescription = (text: string | undefined | null, length = 100) => {
+  if (!text) return "";
   if (text.length <= length) return text;
   return text.substring(0, length) + "...";
 };
 
-const showDetails = () => {
-  // TODO: Implement movie details navigation
-  console.log("Show details for movie:", props.movie.id);
-};
+const posterStyle = computed(() => ({
+  backgroundImage: `url(${props.movie.posterUrl || "/images/no-poster.png"})`,
+}));
 </script>
 
 <style scoped>
 .movie-card {
-  transition: transform 0.2s;
+  position: relative;
+  width: 100%;
+  height: 360px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
 .movie-card:hover {
@@ -99,16 +62,43 @@ const showDetails = () => {
 }
 
 .movie-poster {
-  position: relative;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.movie-poster::after {
-  content: "";
+.movie-overlay {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
-  height: 50%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.movie-card:hover .movie-overlay {
+  opacity: 1;
+}
+
+.movie-title {
+  color: white;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 </style>
