@@ -100,15 +100,7 @@
                       <v-list-item-title>{{ item.title }}</v-list-item-title>
                     </v-list-item>
                     <v-divider class="my-2"></v-divider>
-                    <v-list-item
-                      v-if="authStore.isAuthenticated"
-                      to="/my-tickets"
-                    >
-                      <template v-slot:prepend>
-                        <v-icon>mdi-ticket</v-icon>
-                      </template>
-                      <v-list-item-title>My Tickets</v-list-item-title>
-                    </v-list-item>
+
                     <v-list-item
                       v-if="!authStore.isAuthenticated"
                       to="/auth/login"
@@ -260,13 +252,6 @@
             <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item>
 
-          <v-list-item v-if="authStore.isAuthenticated" to="/my-tickets">
-            <template v-slot:prepend>
-              <v-icon>mdi-ticket</v-icon>
-            </template>
-            <v-list-item-title>My Tickets</v-list-item-title>
-          </v-list-item>
-
           <v-list-item v-if="!authStore.isAuthenticated" to="/auth/login">
             <template v-slot:prepend>
               <v-icon>mdi-login</v-icon>
@@ -351,8 +336,7 @@ const navItems = [
 
 const userMenuItems = [
   { title: "Profile", path: "/profile", icon: "mdi-account" },
-  { title: "My Bookings", path: "/my-bookings", icon: "mdi-ticket" },
-  { title: "Settings", path: "/settings", icon: "mdi-cog" },
+  { title: "My Tickets", path: "/my-tickets", icon: "mdi-ticket" },
 ];
 
 const toggleTheme = () => {

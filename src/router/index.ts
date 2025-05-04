@@ -41,6 +41,11 @@ const router = createRouter({
       component: () => import("@/pages/my-tickets.vue"),
       meta: { requiresAuth: true },
     },
+    {
+      path: "/profile",
+      component: () => import("@/pages/profile.vue"),
+      meta: { requiresAuth: true },
+    },
   ],
 });
 

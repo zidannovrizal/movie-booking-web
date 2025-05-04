@@ -19,6 +19,7 @@ export interface User {
   email: string;
   name: string;
   phoneNumber?: string;
+  profilePicture?: string;
   role: UserRole;
   createdAt: string;
   updatedAt: string;
