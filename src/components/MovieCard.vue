@@ -1,96 +1,97 @@
 <template>
-  <v-card
-    :elevation="theme.global.current.value.dark ? 0 : 2"
-    :class="[
-      'movie-card',
-      theme.global.current.value.dark ? 'bg-surface' : 'bg-white',
-    ]"
-    rounded="lg"
-  >
-    <v-img :src="movie.poster" :aspect-ratio="2 / 3" cover class="movie-poster">
+  <v-card class="movie-card h-100" :elevation="2">
+    <v-img
+      :src="movie.posterUrl"
+      :alt="movie.title"
+      class="movie-poster"
+      height="300"
+      cover
+    >
       <template v-slot:placeholder>
-        <div class="d-flex align-center justify-center fill-height">
+        <v-row class="fill-height ma-0" align="center" justify="center">
           <v-progress-circular
             indeterminate
             color="primary"
           ></v-progress-circular>
-        </div>
+        </v-row>
       </template>
-      <div class="poster-overlay d-flex align-center justify-center">
-        <v-btn
-          color="primary"
-          variant="flat"
-          rounded="pill"
-          class="text-none px-6"
-          @click="$emit('book', movie)"
-        >
-          Book Now
-        </v-btn>
-      </div>
     </v-img>
 
     <v-card-item>
-      <v-card-title class="text-truncate mb-1">
-        {{ movie.title }}
-      </v-card-title>
+      <v-card-title class="text-h6 mb-1">{{ movie.title }}</v-card-title>
       <v-card-subtitle class="mb-2">
-        {{ movie.genre }}
-      </v-card-subtitle>
-
-      <div class="d-flex align-center mb-2">
-        <v-rating
-          v-model="movie.rating"
-          color="warning"
-          density="compact"
-          half-increments
-          readonly
-          size="small"
-        ></v-rating>
-        <span class="text-caption text-medium-emphasis ml-2">
-          {{ movie.rating.toFixed(1) }}/5
-        </span>
-      </div>
-
-      <div class="d-flex align-center justify-space-between">
-        <div class="d-flex align-center">
-          <v-icon size="small" color="primary" class="mr-1">
-            mdi-clock-outline
-          </v-icon>
-          <span class="text-caption text-medium-emphasis">
-            {{ movie.duration }}
-          </span>
-        </div>
         <v-chip
           size="small"
-          :color="movie.status === 'Now Showing' ? 'success' : 'info'"
-          class="text-caption"
+          :color="movie.status === 'NOW_SHOWING' ? 'success' : 'info'"
+          class="mr-2"
         >
-          {{ movie.status }}
+          {{ formatStatus(movie.status) }}
         </v-chip>
-      </div>
+        <v-chip size="small" color="primary" variant="outlined">
+          {{ movie.genre }}
+        </v-chip>
+      </v-card-subtitle>
+      <v-card-text class="text-body-2 text-medium-emphasis">
+        <p class="mb-2">{{ truncateDescription(movie.description) }}</p>
+        <div class="d-flex align-center mt-2">
+          <v-icon size="small" class="mr-1">mdi-clock-outline</v-icon>
+          <span>{{ formatDuration(movie.duration) }}</span>
+        </div>
+      </v-card-text>
     </v-card-item>
+
+    <v-card-actions class="pa-4 pt-0">
+      <v-spacer></v-spacer>
+      <v-btn
+        color="primary"
+        variant="tonal"
+        class="text-none"
+        @click="$emit('book', movie)"
+      >
+        Book Now
+      </v-btn>
+      <v-btn variant="outlined" class="text-none ml-2" @click="showDetails">
+        Details
+      </v-btn>
+    </v-card-actions>
   </v-card>
 </template>
 
-<script setup>
-import { useTheme } from "vuetify";
+<script setup lang="ts">
+import { MovieStatus, type Movie } from "@/types";
 
-const theme = useTheme();
+const props = defineProps<{
+  movie: Movie;
+}>();
 
-defineProps({
-  movie: {
-    type: Object,
-    required: true,
-  },
-});
+const emit = defineEmits<{
+  (e: "book", movie: Movie): void;
+}>();
 
-defineEmits(["book"]);
+const formatStatus = (status: MovieStatus) => {
+  return status === MovieStatus.NOW_SHOWING ? "Now Showing" : "Coming Soon";
+};
+
+const formatDuration = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+};
+
+const truncateDescription = (text: string, length = 100) => {
+  if (text.length <= length) return text;
+  return text.substring(0, length) + "...";
+};
+
+const showDetails = () => {
+  // TODO: Implement movie details navigation
+  console.log("Show details for movie:", props.movie.id);
+};
 </script>
 
 <style scoped>
 .movie-card {
-  height: 100%;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s;
 }
 
 .movie-card:hover {
@@ -101,18 +102,13 @@ defineEmits(["book"]);
   position: relative;
 }
 
-.poster-overlay {
+.movie-poster::after {
+  content: "";
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.movie-card:hover .poster-overlay {
-  opacity: 1;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
 }
 </style>

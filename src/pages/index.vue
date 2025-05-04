@@ -249,23 +249,26 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useMovieStore } from "@/store/movies";
-import { useMovies } from "@/composables/useMovies";
 import { useTheme } from "vuetify";
+import { useMovieStore } from "@/store/movies";
+import { useAuthStore } from "@/store/auth";
+import { useMovies } from "@/composables/useMovies";
 import MovieCard from "@/components/MovieCard.vue";
 import Navbar from "@/components/Navbar.vue";
 
-const store = useMovieStore();
 const theme = useTheme();
+const movieStore = useMovieStore();
+const authStore = useAuthStore();
 const { searchQuery, selectedGenre, filterMovies } = useMovies();
 
 const bookingDialog = ref(false);
 const selectedMovie = ref(null);
 const email = ref("");
 
-const movies = computed(() => store.movies);
-const loading = computed(() => store.loading);
-const featuredMovies = computed(() => store.getFeaturedMovies);
+const movies = computed(() => movieStore.movies);
+const loading = computed(() => movieStore.loading);
+const featuredMovies = computed(() => movieStore.getFeaturedMovies);
+const error = computed(() => movieStore.error);
 
 const filteredMovies = computed(() => {
   return filterMovies(movies.value);
@@ -277,6 +280,10 @@ const genres = computed(() => {
 });
 
 const handleBooking = (movie) => {
+  if (!authStore.isAuthenticated) {
+    // Redirect to login or show login dialog
+    return;
+  }
   selectedMovie.value = movie;
   bookingDialog.value = true;
 };
@@ -295,12 +302,12 @@ const showAllMovies = () => {
   });
 };
 
-const showComingSoon = () => {
-  // TODO: Implement coming soon navigation
+const showComingSoon = async () => {
+  await movieStore.fetchComingSoonMovies();
 };
 
-const searchMovies = () => {
-  // TODO: Implement search functionality
+const searchMovies = async () => {
+  await movieStore.fetchMovies();
 };
 
 const subscribeNewsletter = () => {
@@ -315,7 +322,10 @@ const promotionSectionStyle = computed(() => ({
 }));
 
 onMounted(async () => {
-  await store.fetchMovies();
+  await movieStore.fetchMovies();
+  if (authStore.token) {
+    await authStore.fetchCurrentUser();
+  }
 });
 </script>
 

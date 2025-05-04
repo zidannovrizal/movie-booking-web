@@ -1,142 +1,112 @@
 <template>
-  <v-app-bar
-    :color="theme.global.current.value.dark ? 'surface' : 'white'"
-    elevation="0"
-    class="px-4"
-    height="70"
-  >
-    <v-app-bar-title class="font-weight-bold d-flex align-center">
-      <v-icon color="primary" size="32" class="mr-2">mdi-film</v-icon>
-      <span class="text-primary">Cine</span>
-      <span>Flix</span>
-    </v-app-bar-title>
+  <v-app-bar flat>
+    <v-container class="d-flex align-center justify-space-between">
+      <!-- Logo -->
+      <div class="d-flex align-center">
+        <v-btn variant="text" class="text-h6 font-weight-bold" to="/">
+          MovieTime
+        </v-btn>
+      </div>
 
-    <v-spacer></v-spacer>
+      <!-- Navigation Links -->
+      <div class="d-none d-md-flex align-center">
+        <v-btn variant="text" to="/movies">Movies</v-btn>
+        <v-btn variant="text" to="/theaters">Theaters</v-btn>
+        <v-btn variant="text" to="/about">About</v-btn>
+      </div>
 
-    <div class="d-none d-md-flex align-center">
-      <v-btn
-        v-for="item in menuItems"
-        :key="item.title"
-        :to="item.to"
-        variant="text"
-        class="text-none mx-2 nav-btn"
-        :class="{ 'nav-btn-active': isActiveRoute(item.to) }"
-      >
-        <v-icon start :icon="getMenuIcon(item.title)" size="small"></v-icon>
-        {{ item.title }}
-      </v-btn>
-    </div>
+      <!-- Auth Buttons -->
+      <div class="d-flex align-center">
+        <template v-if="authStore.isAuthenticated">
+          <v-menu>
+            <template v-slot:activator="{ props }">
+              <v-btn variant="text" v-bind="props" :loading="authStore.loading">
+                {{ authStore.user?.name }}
+                <v-icon class="ml-1">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item to="/profile">
+                <v-list-item-title>Profile</v-list-item-title>
+              </v-list-item>
+              <v-list-item to="/my-bookings">
+                <v-list-item-title>My Bookings</v-list-item-title>
+              </v-list-item>
+              <v-divider></v-divider>
+              <v-list-item @click="handleLogout">
+                <v-list-item-title>Logout</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
+        <template v-else>
+          <v-btn variant="text" to="/auth/login">Login</v-btn>
+          <v-btn color="primary" class="ml-2" to="/auth/signup">
+            Sign Up
+          </v-btn>
+        </template>
 
-    <v-divider vertical class="mx-4 d-none d-md-block"></v-divider>
-
-    <v-btn icon variant="text" @click="toggleTheme" class="mr-4">
-      <v-icon>{{
-        theme.global.current.value.dark
-          ? "mdi-weather-sunny"
-          : "mdi-weather-night"
-      }}</v-icon>
-    </v-btn>
-
-    <div class="d-none d-md-flex align-center">
-      <v-btn variant="text" class="text-none mr-2">Log in</v-btn>
-      <v-btn color="primary" class="text-none px-4" rounded="pill">
-        Sign up
-      </v-btn>
-    </div>
-
-    <!-- Mobile Menu -->
-    <v-btn class="d-md-none" icon @click="mobileMenu = true">
-      <v-icon>mdi-menu</v-icon>
-    </v-btn>
-
-    <v-navigation-drawer
-      v-model="mobileMenu"
-      location="right"
-      temporary
-      width="300"
-    >
-      <v-list class="pa-4">
-        <v-list-item class="mb-6">
-          <div class="d-flex align-center">
-            <v-icon color="primary" size="32" class="mr-2">mdi-film</v-icon>
-            <span class="text-primary font-weight-bold">Cine</span>
-            <span class="font-weight-bold">Flix</span>
-          </div>
-        </v-list-item>
-
-        <v-list-item
-          v-for="item in menuItems"
-          :key="item.title"
-          :to="item.to"
-          :active="isActiveRoute(item.to)"
-          color="primary"
-          class="mb-2 rounded-lg"
-          active-class="mobile-nav-active"
-        >
-          <template v-slot:prepend>
-            <v-icon :icon="getMenuIcon(item.title)"></v-icon>
-          </template>
-          <v-list-item-title>{{ item.title }}</v-list-item-title>
-        </v-list-item>
-
-        <v-list-item @click="toggleTheme" class="mb-2 rounded-lg">
-          <template v-slot:prepend>
-            <v-icon>{{
+        <!-- Theme Toggle -->
+        <v-btn icon variant="text" class="ml-2" @click="toggleTheme">
+          <v-icon>
+            {{
               theme.global.current.value.dark
                 ? "mdi-weather-sunny"
                 : "mdi-weather-night"
-            }}</v-icon>
-          </template>
-          <v-list-item-title>
-            {{ theme.global.current.value.dark ? "Light Mode" : "Dark Mode" }}
-          </v-list-item-title>
-        </v-list-item>
-      </v-list>
+            }}
+          </v-icon>
+        </v-btn>
 
-      <v-divider class="mb-4"></v-divider>
-
-      <div class="px-4">
-        <v-btn block variant="text" class="mb-3 text-none">Log in</v-btn>
-        <v-btn block color="primary" class="text-none" rounded="pill">
-          Sign up
+        <!-- Mobile Menu -->
+        <v-btn
+          icon
+          variant="text"
+          class="d-md-none ml-2"
+          @click="mobileMenu = true"
+        >
+          <v-icon>mdi-menu</v-icon>
         </v-btn>
       </div>
+    </v-container>
+
+    <!-- Mobile Navigation Drawer -->
+    <v-navigation-drawer v-model="mobileMenu" location="right" temporary>
+      <v-list>
+        <v-list-item to="/" @click="mobileMenu = false">
+          <v-list-item-title>Home</v-list-item-title>
+        </v-list-item>
+        <v-list-item to="/movies" @click="mobileMenu = false">
+          <v-list-item-title>Movies</v-list-item-title>
+        </v-list-item>
+        <v-list-item to="/theaters" @click="mobileMenu = false">
+          <v-list-item-title>Theaters</v-list-item-title>
+        </v-list-item>
+        <v-list-item to="/about" @click="mobileMenu = false">
+          <v-list-item-title>About</v-list-item-title>
+        </v-list-item>
+      </v-list>
     </v-navigation-drawer>
   </v-app-bar>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
-import { useRoute } from "vue-router";
 import { useTheme } from "vuetify";
+import { useAuthStore } from "@/store/auth";
+import { useRouter } from "vue-router";
 
-const route = useRoute();
 const theme = useTheme();
+const router = useRouter();
+const authStore = useAuthStore();
 const mobileMenu = ref(false);
-
-const menuItems = [
-  { title: "Home", to: "/" },
-  { title: "Movies", to: "/movies" },
-  { title: "Theaters", to: "/theaters" },
-  { title: "My Tickets", to: "/tickets" },
-];
 
 const toggleTheme = () => {
   theme.global.name.value = theme.global.current.value.dark ? "light" : "dark";
 };
 
-const isActiveRoute = (path) => {
-  return route.path === path;
-};
-
-const getMenuIcon = (title) => {
-  const icons = {
-    Home: "mdi-home",
-    Movies: "mdi-movie",
-    Theaters: "mdi-theater",
-    "My Tickets": "mdi-ticket",
-  };
-  return icons[title] || "mdi-circle";
+const handleLogout = async () => {
+  authStore.logout();
+  await router.push("/login");
 };
 </script>
 
