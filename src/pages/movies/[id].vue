@@ -198,6 +198,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { movieApi } from "@/api/movies";
+import { type ShowTime } from "@/api/showtimes";
 import moment from "moment";
 import { useTheme } from "vuetify";
 
@@ -208,18 +209,36 @@ const theme = useTheme();
 const movie = ref(null);
 const loading = ref(true);
 const bookingLoading = ref(false);
+const showtimes = ref<ShowTime[]>([]);
 
-// Booking form data
+// Selected booking details
 const selectedTheater = ref("");
 const selectedDate = ref(moment().format("YYYY-MM-DD"));
 const selectedTime = ref(null);
+const selectedShowtime = ref<ShowTime | null>(null);
 
-// Mock theaters data (replace with API data later)
-const theaters = [
-  { id: 1, name: "Cineplex Downtown" },
-  { id: 2, name: "IMAX City Center" },
-  { id: 3, name: "MovieMax Mall" },
-];
+interface ShowtimeOption {
+  value: string;
+  label: string;
+  isPast: boolean;
+  showtime: ShowTime;
+}
+
+// Available theaters based on showtimes
+const theaters = computed(() => {
+  const uniqueTheaters = new Map();
+  if (!Array.isArray(showtimes.value)) return [];
+
+  showtimes.value.forEach((showtime) => {
+    if (!uniqueTheaters.has(showtime.theater.id)) {
+      uniqueTheaters.set(showtime.theater.id, showtime.theater);
+    }
+  });
+  return Array.from(uniqueTheaters.values()).map((theater) => ({
+    id: theater.id,
+    name: theater.name,
+  }));
+});
 
 // Generate available dates (next 7 days)
 const availableDates = computed(() => {
@@ -240,29 +259,27 @@ const availableDates = computed(() => {
   return dates;
 });
 
-// Generate showtimes
+// Filter showtimes by selected date and theater
 const availableShowtimes = computed(() => {
-  if (!selectedDate.value) return [];
+  if (
+    !selectedDate.value ||
+    !selectedTheater.value ||
+    !Array.isArray(showtimes.value)
+  )
+    return [];
 
-  const times = [];
-  const now = moment();
-  const selectedMoment = moment(selectedDate.value);
-  const isToday = selectedMoment.isSame(now, "day");
-  const currentHour = now.hour();
-
-  // Showtimes from 10 AM to 10 PM, every 2 hours
-  for (let hour = 10; hour <= 22; hour += 2) {
-    const time = moment(selectedDate.value).hour(hour).minute(0);
-    const isPast = isToday && hour <= currentHour;
-
-    times.push({
-      value: time.format("HH:mm"),
-      label: time.format("HH:mm"),
-      isPast,
-    });
-  }
-
-  return times;
+  return showtimes.value
+    .filter(
+      (showtime) =>
+        showtime.theaterId === selectedTheater.value &&
+        moment(showtime.startTime).format("YYYY-MM-DD") === selectedDate.value
+    )
+    .map((showtime) => ({
+      value: showtime.id,
+      label: moment(showtime.startTime).format("HH:mm"),
+      isPast: moment(showtime.startTime).isBefore(moment()),
+      showtime,
+    }));
 });
 
 const canBook = computed(() => {
@@ -286,26 +303,38 @@ const handleDateSelect = (date: any) => {
   selectedTime.value = null; // Reset time when date changes
 };
 
-const handleTimeSelect = (time: any) => {
-  if (!time.isPast) {
-    selectedTime.value = time.value;
-  }
+const handleTimeSelect = (time: ShowtimeOption) => {
+  if (time.isPast) return;
+  selectedTime.value = time.value;
+  selectedShowtime.value = time.showtime;
 };
 
 const handleBooking = async () => {
   try {
     bookingLoading.value = true;
-    // TODO: Implement booking API call
-    console.log("Booking:", {
-      movieId: route.params.id,
-      theaterId: selectedTheater.value,
-      date: selectedDate.value,
-      time: selectedTime.value,
-    });
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-    router.push("/bookings");
+
+    if (!selectedShowtime.value) {
+      throw new Error("No showtime selected");
+    }
+
+    // Store movie and booking details temporarily
+    localStorage.setItem("movieDetails", JSON.stringify(movie.value));
+    localStorage.setItem(
+      "bookingDetails",
+      JSON.stringify({
+        theaterId: selectedTheater.value,
+        date: selectedDate.value,
+        time: moment(selectedShowtime.value.startTime).format("HH:mm"),
+        showTimeId: selectedShowtime.value.id,
+        price: selectedShowtime.value.price,
+      })
+    );
+
+    // Redirect to seat selection page
+    router.push(`/movies/seat-selection`);
   } catch (error) {
-    console.error("Error booking movie:", error);
+    console.error("Error processing booking:", error);
+    alert(error.message || "Failed to process booking");
   } finally {
     bookingLoading.value = false;
   }
@@ -319,8 +348,24 @@ const backdropGradient = computed(() => {
 
 onMounted(async () => {
   try {
-    const data = await movieApi.getMovieById(Number(route.params.id));
-    movie.value = data;
+    loading.value = true;
+    const movieId = Number(route.params.id);
+    console.log("Fetching data for movie:", movieId, typeof movieId);
+
+    // Fetch movie details and showtimes in parallel
+    const [movieData, showtimesData] = await Promise.all([
+      movieApi.getMovieById(movieId),
+      movieApi.getMovieShowtimes(movieId),
+    ]);
+
+    console.log("Movie data:", movieData);
+    console.log("Showtimes response:", showtimesData);
+
+    movie.value = movieData;
+    showtimes.value = showtimesData;
+
+    console.log("Processed showtimes:", showtimes.value);
+    console.log("Available theaters:", theaters.value);
   } catch (error) {
     console.error("Error loading movie:", error);
   } finally {

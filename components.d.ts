@@ -15,6 +15,8 @@ declare module 'vue' {
     Navbar: typeof import('./src/components/Navbar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SeatPicker: typeof import('./src/components/SeatPicker.vue')['default']
+    ShowtimePicker: typeof import('./src/components/ShowtimePicker.vue')['default']
     SignupForm: typeof import('./src/components/auth/SignupForm.vue')['default']
   }
 }
