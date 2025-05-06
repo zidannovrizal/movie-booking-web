@@ -69,7 +69,10 @@ export const useAuthStore = defineStore("auth", {
       this.loading = true;
       this.error = null;
       try {
-        const { data } = await api.post<AuthResponse>("/auth/login", payload);
+        const { data } = await api.post<AuthResponse>(
+          "/api/auth/login",
+          payload
+        );
 
         this.user = data.user;
         this.token = data.token;
@@ -89,7 +92,10 @@ export const useAuthStore = defineStore("auth", {
       this.loading = true;
       this.error = null;
       try {
-        const { data } = await api.post<AuthResponse>("/auth/signup", payload);
+        const { data } = await api.post<AuthResponse>(
+          "/api/auth/signup",
+          payload
+        );
 
         this.user = data.user;
         this.token = data.token;
@@ -113,7 +119,7 @@ export const useAuthStore = defineStore("auth", {
 
         // Send data as JSON instead of FormData since we're not handling file upload yet
         const { data } = await api.put<UpdateProfileResponse>(
-          "/auth/profile",
+          "/api/auth/profile",
           payload,
           {
             headers: {
@@ -144,7 +150,7 @@ export const useAuthStore = defineStore("auth", {
       this.loading = true;
       this.error = null;
       try {
-        await api.put("/auth/password", payload);
+        await api.put("/api/auth/password", payload);
       } catch (error: any) {
         this.error = error.response?.data?.error || "Failed to change password";
         throw error;
@@ -165,7 +171,7 @@ export const useAuthStore = defineStore("auth", {
 
       this.loading = true;
       try {
-        const { data } = await api.get<User>("/auth/me");
+        const { data } = await api.get<User>("/api/auth/me");
         this.user = data;
         return data;
       } catch (error) {

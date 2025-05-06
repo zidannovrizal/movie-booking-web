@@ -114,76 +114,98 @@
                     </v-col>
 
                     <!-- Date Selection -->
-                    <v-col cols="12">
-                      <div class="d-flex overflow-x-auto date-cards pb-2">
-                        <v-card
-                          v-for="date in availableDates"
-                          :key="date.value"
-                          :color="
-                            selectedDate === date.value ? 'primary' : undefined
-                          "
-                          :variant="
-                            selectedDate === date.value ? 'flat' : 'outlined'
-                          "
-                          @click="handleDateSelect(date)"
-                          class="date-card mr-2"
-                          min-width="100"
-                          elevation="0"
-                        >
-                          <v-card-text class="text-center pa-2">
-                            <div class="text-body-2 font-weight-bold">
-                              {{ date.day }}
-                            </div>
-                            <div class="text-h6 font-weight-bold">
-                              {{ date.date }}
-                            </div>
-                            <div class="text-caption">{{ date.month }}</div>
-                          </v-card-text>
-                        </v-card>
+                    <v-col cols="12" md="4">
+                      <div class="date-selection">
+                        <div class="d-flex flex-wrap">
+                          <v-card
+                            v-for="date in availableDates"
+                            :key="date.value"
+                            :color="
+                              selectedDate === date.value
+                                ? 'primary'
+                                : undefined
+                            "
+                            class="date-card mr-2 mb-2"
+                            @click="handleDateSelect(date)"
+                          >
+                            <v-card-text class="text-center pa-2">
+                              <div class="text-caption">{{ date.month }}</div>
+                              <div class="text-h5">{{ date.date }}</div>
+                              <div class="text-caption">{{ date.day }}</div>
+                            </v-card-text>
+                          </v-card>
+                        </div>
                       </div>
                     </v-col>
 
-                    <!-- Showtime Selection -->
-                    <v-col cols="12">
-                      <div class="d-flex flex-wrap">
-                        <v-card
-                          v-for="time in availableShowtimes"
-                          :key="time.value"
-                          :color="
-                            selectedTime === time.value ? 'primary' : undefined
-                          "
-                          :variant="
-                            selectedTime === time.value ? 'flat' : 'outlined'
-                          "
-                          :disabled="time.isPast"
-                          @click="handleTimeSelect(time)"
-                          class="time-card mr-2 mb-2"
-                          elevation="0"
-                          width="90"
-                        >
-                          <v-card-text class="text-center pa-2">
-                            <div class="text-body-1 font-weight-medium">
+                    <!-- Time Selection -->
+                    <v-col cols="12" md="4">
+                      <div class="time-selection">
+                        <div class="d-flex flex-wrap">
+                          <v-card
+                            v-for="time in availableTimes"
+                            :key="time.value"
+                            :color="
+                              selectedTime === time.value
+                                ? 'primary'
+                                : undefined
+                            "
+                            :class="{
+                              'time-card': true,
+                              'mr-2': true,
+                              'mb-2': true,
+                              disabled: time.isPast || !time.isAvailable,
+                            }"
+                            @click="
+                              !time.isPast && time.isAvailable
+                                ? (selectedTime = time.value)
+                                : null
+                            "
+                          >
+                            <v-card-text class="text-center pa-2">
                               {{ time.label }}
-                            </div>
-                          </v-card-text>
-                        </v-card>
+                            </v-card-text>
+                          </v-card>
+                        </div>
                       </div>
                     </v-col>
                   </v-row>
 
-                  <!-- Book Button -->
-                  <v-btn
-                    color="primary"
-                    size="large"
-                    :disabled="!canBook"
-                    :loading="bookingLoading"
-                    @click="handleBooking"
-                    class="book-button mt-4"
-                    block
-                  >
-                    Book Now
-                    <v-icon class="ml-2">mdi-arrow-right</v-icon>
-                  </v-btn>
+                  <!-- Price Display -->
+                  <v-row v-if="calculatePrice" class="mt-4">
+                    <v-col cols="12">
+                      <div class="text-h6">
+                        Base Price: Rp {{ calculatePrice.toLocaleString() }}
+                      </div>
+                      <div class="text-caption">
+                        * Final price may vary based on seat selection
+                      </div>
+                    </v-col>
+                  </v-row>
+
+                  <!-- Error Display -->
+                  <v-row v-if="theaterError" class="mt-4">
+                    <v-col cols="12">
+                      <v-alert type="error" variant="tonal">
+                        {{ theaterError }}
+                      </v-alert>
+                    </v-col>
+                  </v-row>
+
+                  <!-- Booking Button -->
+                  <v-row class="mt-4">
+                    <v-col cols="12" class="text-center">
+                      <v-btn
+                        color="primary"
+                        size="large"
+                        :loading="bookingLoading"
+                        :disabled="!canBook"
+                        @click="handleBooking"
+                      >
+                        Continue to Seat Selection
+                      </v-btn>
+                    </v-col>
+                  </v-row>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -198,6 +220,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { movieApi } from "@/api/movies";
+import { useTheaters } from "@/composables/useTheaters";
 import { type ShowTime } from "@/api/showtimes";
 import moment from "moment";
 import { useTheme } from "vuetify";
@@ -209,82 +232,20 @@ const theme = useTheme();
 const movie = ref(null);
 const loading = ref(true);
 const bookingLoading = ref(false);
-const showtimes = ref<ShowTime[]>([]);
 
-// Selected booking details
-const selectedTheater = ref("");
-const selectedDate = ref(moment().format("YYYY-MM-DD"));
-const selectedTime = ref(null);
-const selectedShowtime = ref<ShowTime | null>(null);
-
-interface ShowtimeOption {
-  value: string;
-  label: string;
-  isPast: boolean;
-  showtime: ShowTime;
-}
-
-// Available theaters based on showtimes
-const theaters = computed(() => {
-  const uniqueTheaters = new Map();
-  if (!Array.isArray(showtimes.value)) return [];
-
-  showtimes.value.forEach((showtime) => {
-    if (!uniqueTheaters.has(showtime.theater.id)) {
-      uniqueTheaters.set(showtime.theater.id, showtime.theater);
-    }
-  });
-  return Array.from(uniqueTheaters.values()).map((theater) => ({
-    id: theater.id,
-    name: theater.name,
-  }));
-});
-
-// Generate available dates (next 7 days)
-const availableDates = computed(() => {
-  const dates = [];
-  const today = moment();
-
-  for (let i = 0; i < 7; i++) {
-    const date = moment().add(i, "days");
-    dates.push({
-      value: date.format("YYYY-MM-DD"),
-      day: date.format("ddd").toUpperCase(),
-      date: date.format("D"),
-      month: date.format("MMM"),
-      isToday: date.isSame(today, "day"),
-    });
-  }
-
-  return dates;
-});
-
-// Filter showtimes by selected date and theater
-const availableShowtimes = computed(() => {
-  if (
-    !selectedDate.value ||
-    !selectedTheater.value ||
-    !Array.isArray(showtimes.value)
-  )
-    return [];
-
-  return showtimes.value
-    .filter(
-      (showtime) =>
-        showtime.theaterId === selectedTheater.value &&
-        moment(showtime.startTime).format("YYYY-MM-DD") === selectedDate.value
-    )
-    .map((showtime) => ({
-      value: showtime.id,
-      label: moment(showtime.startTime).format("HH:mm"),
-      isPast: moment(showtime.startTime).isBefore(moment()),
-      showtime,
-    }));
-});
-
-const canBook = computed(() => {
-  return selectedTheater.value && selectedDate.value && selectedTime.value;
-});
+// Use the theaters composable
+const {
+  theaters,
+  selectedTheater,
+  selectedDate,
+  selectedTime,
+  availableDates,
+  availableTimes,
+  calculatePrice,
+  canBook,
+  loadTheaters,
+  error: theaterError,
+} = useTheaters(route.params.id as string);
 
 // Helper functions
 const formatDuration = (minutes: number) => {
@@ -303,30 +264,29 @@ const handleDateSelect = (date: any) => {
   selectedTime.value = null; // Reset time when date changes
 };
 
-const handleTimeSelect = (time: ShowtimeOption) => {
+const handleTimeSelect = (time: any) => {
   if (time.isPast) return;
   selectedTime.value = time.value;
-  selectedShowtime.value = time.showtime;
 };
 
 const handleBooking = async () => {
   try {
     bookingLoading.value = true;
 
-    if (!selectedShowtime.value) {
-      throw new Error("No showtime selected");
+    if (!selectedTheater.value || !selectedTime.value) {
+      throw new Error("Please select a theater and time");
     }
 
-    // Store movie and booking details temporarily
+    // Store booking details in localStorage
     localStorage.setItem("movieDetails", JSON.stringify(movie.value));
     localStorage.setItem(
       "bookingDetails",
       JSON.stringify({
+        movieId: Number(route.params.id),
         theaterId: selectedTheater.value,
         date: selectedDate.value,
-        time: moment(selectedShowtime.value.startTime).format("HH:mm"),
-        showTimeId: selectedShowtime.value.id,
-        price: selectedShowtime.value.price,
+        time: selectedTime.value,
+        price: calculatePrice.value,
       })
     );
 
@@ -350,22 +310,18 @@ onMounted(async () => {
   try {
     loading.value = true;
     const movieId = Number(route.params.id);
-    console.log("Fetching data for movie:", movieId, typeof movieId);
 
-    // Fetch movie details and showtimes in parallel
-    const [movieData, showtimesData] = await Promise.all([
+    // Fetch movie details and load theaters in parallel
+    const [movieData] = await Promise.all([
       movieApi.getMovieById(movieId),
-      movieApi.getMovieShowtimes(movieId),
+      loadTheaters(),
     ]);
 
-    console.log("Movie data:", movieData);
-    console.log("Showtimes response:", showtimesData);
-
     movie.value = movieData;
-    showtimes.value = showtimesData;
 
-    console.log("Processed showtimes:", showtimes.value);
-    console.log("Available theaters:", theaters.value);
+    if (!movie.value) {
+      throw new Error("Movie not found");
+    }
   } catch (error) {
     console.error("Error loading movie:", error);
   } finally {
@@ -381,24 +337,12 @@ onMounted(async () => {
 }
 
 .backdrop {
-  &::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      to bottom,
-      transparent 0%,
-      rgba(0, 0, 0, 0.8) 100%
-    );
-  }
+  position: relative;
 }
 
 .poster-image {
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .movie-header {
@@ -407,7 +351,6 @@ onMounted(async () => {
 
 .movie-description {
   max-width: 800px;
-  line-height: 1.5;
 }
 
 .booking-card {
@@ -424,24 +367,27 @@ onMounted(async () => {
 
 .date-card {
   cursor: pointer;
-  transition: all 0.2s ease;
+  min-width: 80px;
+  transition: all 0.3s ease;
+}
 
-  &:hover:not(.v-card--disabled) {
-    transform: translateY(-2px);
-  }
+.date-card:hover {
+  transform: translateY(-2px);
 }
 
 .time-card {
   cursor: pointer;
-  transition: all 0.2s ease;
+  min-width: 100px;
+  transition: all 0.3s ease;
+}
 
-  &:hover:not(.v-card--disabled) {
-    transform: translateY(-2px);
-  }
+.time-card:hover:not(.disabled) {
+  transform: translateY(-2px);
+}
 
-  &.v-card--disabled {
-    opacity: 0.5;
-  }
+.time-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .book-button {

@@ -1,32 +1,35 @@
 import api from "./config";
-import type { Booking, BookingStatus } from "@/types";
+import type { Booking } from "@/types";
 
 interface CreateBookingDto {
-  showTimeId: string;
-  seats: string[];
+  movieId: number;
+  theaterId: string;
+  posterUrl: string;
+  showDate: string;
+  showTime: string;
+  seats: Array<{
+    seatNumber: string;
+    isVIP: boolean;
+    price: number;
+  }>;
+  totalPrice: number;
 }
 
 export const bookingApi = {
-  // Get user's tickets
-  getMyTickets: () => api.get<Booking[]>("/bookings/my-tickets"),
-
   // Get user's bookings
-  getUserBookings: () => api.get<Booking[]>("/bookings/user"),
+  getUserBookings: () => api.get<Booking[]>("/api/bookings/user"),
 
   // Create a new booking
   createBooking: (data: CreateBookingDto) =>
-    api.post<Booking>("/bookings", data),
+    api.post<Booking>("/api/bookings", data),
 
   // Get booking by id
-  getBookingById: (id: string) => api.get<Booking>(`/bookings/${id}`),
+  getBookingById: (id: string) => api.get<Booking>(`/api/bookings/${id}`),
 
   // Cancel booking
-  cancelBooking: (id: string) => api.delete<Booking>(`/bookings/${id}`),
+  cancelBooking: (id: string) => api.delete(`/api/bookings/${id}`),
 
-  // Get all bookings (admin only)
-  getAllBookings: () => api.get<Booking[]>("/bookings"),
-
-  // Update booking status (admin only)
-  updateBookingStatus: (id: string, status: BookingStatus) =>
-    api.patch<Booking>(`/bookings/${id}/status`, { status }),
+  // Get booked seats for a theater, date and time
+  getBookedSeats: (theaterId: string, date: string, time: string) =>
+    api.get<string[]>(`/api/bookings/seats/${theaterId}/${date}/${time}`),
 };

@@ -42,9 +42,15 @@ export interface Theater {
   name: string;
   location: string;
   city: string;
+  country: string;
   address: string;
   facilities: string[];
   capacity: number;
+  showTimes: string[];
+  regularPriceWeekday: number;
+  regularPriceWeekend: number;
+  vipPriceWeekday: number;
+  vipPriceWeekend: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,11 +69,16 @@ export interface ShowTime {
 export interface Booking {
   id: string;
   userId: string;
-  showTimeId: string;
+  theaterId: string;
+  tmdbMovieId: number;
+  posterUrl: string;
+  showDate: string;
+  showTime: string;
+  isVIP: boolean;
   seats: string[];
   totalPrice: number;
   status: BookingStatus;
-  showTime: ShowTime;
+  theater: Theater;
   createdAt: string;
   updatedAt: string;
 }

@@ -63,7 +63,15 @@
               >
                 <div class="d-flex align-center">
                   <div class="seat-demo available"></div>
-                  <span class="ml-2 text-body-2">Available</span>
+                  <span class="ml-2 text-body-2"
+                    >Regular (Rp {{ formatPrice(basePrice) }})</span
+                  >
+                </div>
+                <div class="d-flex align-center">
+                  <div class="seat-demo vip"></div>
+                  <span class="ml-2 text-body-2"
+                    >VIP (Rp {{ formatPrice(vipPrice) }})</span
+                  >
                 </div>
                 <div class="d-flex align-center">
                   <div class="seat-demo selected"></div>
@@ -72,10 +80,6 @@
                 <div class="d-flex align-center">
                   <div class="seat-demo occupied"></div>
                   <span class="ml-2 text-body-2">Occupied</span>
-                </div>
-                <div class="d-flex align-center">
-                  <div class="seat-demo vip"></div>
-                  <span class="ml-2 text-body-2">VIP (+$2)</span>
                 </div>
               </div>
 
@@ -138,23 +142,22 @@
                     <div class="d-flex justify-space-between mb-2">
                       <span>Regular Seats ({{ regularSeatsCount }})</span>
                       <span
-                        >${{
-                          (regularSeatsCount * PRICE_PER_SEAT).toFixed(2)
-                        }}</span
+                        >Rp
+                        {{ formatPrice(regularSeatsCount * basePrice) }}</span
                       >
                     </div>
                     <div class="d-flex justify-space-between mb-2">
                       <span>VIP Seats ({{ vipSeatsCount }})</span>
                       <span
-                        >${{
-                          (vipSeatsCount * (PRICE_PER_SEAT + 2)).toFixed(2)
-                        }}</span
+                        >Rp {{ formatPrice(vipSeatsCount * vipPrice) }}</span
                       >
                     </div>
                     <v-divider class="my-2"></v-divider>
                     <div class="d-flex justify-space-between">
                       <span class="text-h6">Total</span>
-                      <span class="text-h6">${{ totalPrice.toFixed(2) }}</span>
+                      <span class="text-h6"
+                        >Rp {{ formatPrice(totalPrice) }}</span
+                      >
                     </div>
                   </div>
                 </v-col>
@@ -180,56 +183,141 @@
     </v-container>
 
     <!-- Confirmation Dialog -->
-    <v-dialog v-model="showConfirmDialog" max-width="400">
-      <v-card>
+    <v-dialog v-model="showConfirmDialog" max-width="500">
+      <v-card class="confirmation-dialog">
         <v-card-text class="pa-6">
-          <div class="text-center mb-4">
-            <v-icon size="64" color="primary">mdi-ticket-confirmation</v-icon>
+          <div class="text-center mb-6">
+            <v-icon size="64" color="primary" class="mb-4"
+              >mdi-ticket-confirmation</v-icon
+            >
+            <h2 class="text-h4 font-weight-bold mb-2">Confirm Booking</h2>
+            <p class="text-body-1 text-medium-emphasis">
+              Please review your booking details before proceeding with payment
+            </p>
           </div>
-          <h3 class="text-h5 text-center mb-4">Confirm Your Booking</h3>
-          <div class="text-body-1 mb-2">
-            <strong>Movie:</strong> {{ movieDetails?.title }}
+
+          <v-list>
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="primary">mdi-movie</v-icon>
+              </template>
+              <v-list-item-title class="font-weight-medium">{{
+                movieDetails?.title
+              }}</v-list-item-title>
+            </v-list-item>
+
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="primary">mdi-calendar-clock</v-icon>
+              </template>
+              <v-list-item-title class="font-weight-medium">
+                {{ formatDateTime(bookingDetails?.date, bookingDetails?.time) }}
+              </v-list-item-title>
+            </v-list-item>
+
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="primary">mdi-theater</v-icon>
+              </template>
+              <v-list-item-title class="font-weight-medium">{{
+                theaterName
+              }}</v-list-item-title>
+            </v-list-item>
+
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="primary">mdi-seat</v-icon>
+              </template>
+              <v-list-item-title class="font-weight-medium">{{
+                selectedSeatsLabel
+              }}</v-list-item-title>
+              <v-list-item-subtitle>
+                {{ vipSeatsCount > 0 ? `${vipSeatsCount} VIP, ` : "" }}
+                {{
+                  regularSeatsCount > 0 ? `${regularSeatsCount} Regular` : ""
+                }}
+              </v-list-item-subtitle>
+            </v-list-item>
+
+            <v-list-item>
+              <template v-slot:prepend>
+                <v-icon color="primary">mdi-cash</v-icon>
+              </template>
+              <v-list-item-title class="text-primary font-weight-bold">
+                Rp {{ formatPrice(totalPrice) }}
+              </v-list-item-title>
+              <v-list-item-subtitle>Total Price</v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+
+        <v-card-actions class="pa-6 pt-0">
+          <div class="d-flex flex-column w-100 gap-2">
+            <v-btn
+              color="grey"
+              variant="outlined"
+              block
+              class="mr-2"
+              @click="showConfirmDialog = false"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="primary"
+              variant="flat"
+              block
+              :loading="loading"
+              @click="processBooking"
+            >
+              Confirm & Pay
+            </v-btn>
           </div>
-          <div class="text-body-1 mb-2">
-            <strong>Date & Time:</strong>
-            {{ formatDateTime(bookingDetails?.date, bookingDetails?.time) }}
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Success Dialog -->
+    <v-dialog v-model="showSuccessDialog" max-width="400">
+      <v-card class="success-dialog">
+        <v-card-text class="pa-6">
+          <div class="text-center">
+            <v-icon size="48" color="success" class="mb-3"
+              >mdi-check-circle</v-icon
+            >
+            <h2 class="text-h5 font-weight-bold mb-2">Booking Successful!</h2>
+            <p class="text-body-2 text-medium-emphasis mb-4">
+              Your movie tickets have been booked successfully
+            </p>
           </div>
-          <div class="text-body-1 mb-2">
-            <strong>Theater:</strong> {{ theaterName }}
-          </div>
-          <div class="text-body-1 mb-2">
-            <strong>Seats:</strong> {{ selectedSeatsLabel }}
-          </div>
-          <div class="text-body-1 mb-4">
-            <strong>Total Price:</strong> ${{ totalPrice.toFixed(2) }}
+
+          <div class="d-flex flex-column gap-2">
+            <v-btn
+              color="primary"
+              variant="flat"
+              block
+              to="/my-tickets"
+              prepend-icon="mdi-ticket-confirmation"
+            >
+              View My Tickets
+            </v-btn>
+            <v-btn
+              color="primary"
+              variant="outlined"
+              block
+              to="/movies"
+              prepend-icon="mdi-movie"
+            >
+              Browse More Movies
+            </v-btn>
           </div>
         </v-card-text>
-        <v-card-actions class="pa-6 pt-0">
-          <v-btn
-            color="grey"
-            variant="text"
-            block
-            class="mr-2"
-            @click="showConfirmDialog = false"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            color="primary"
-            block
-            :loading="loading"
-            @click="processBooking"
-          >
-            Confirm & Pay
-          </v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import moment from "moment";
 import { bookingApi } from "@/api/bookings";
@@ -237,6 +325,7 @@ import { bookingApi } from "@/api/bookings";
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
+const error = ref(null);
 
 // Mock data - In real app, these would come from route params/query or store
 const movieDetails = ref(
@@ -245,6 +334,40 @@ const movieDetails = ref(
 const bookingDetails = ref(
   JSON.parse(localStorage.getItem("bookingDetails") || "{}")
 );
+
+// Fetch booked seats
+const occupiedSeats = ref<Array<{ row: number; col: number }>>([]);
+
+const fetchBookedSeats = async () => {
+  try {
+    if (
+      !bookingDetails.value?.theaterId ||
+      !bookingDetails.value?.date ||
+      !bookingDetails.value?.time
+    ) {
+      return;
+    }
+
+    const response = await bookingApi.getBookedSeats(
+      bookingDetails.value.theaterId,
+      bookingDetails.value.date,
+      bookingDetails.value.time
+    );
+
+    // Convert seat numbers (e.g., "A1", "B2") to row and col numbers
+    occupiedSeats.value = response.data.map((seatNumber) => {
+      const row = seatNumber.charCodeAt(0) - 64; // Convert A to 1, B to 2, etc.
+      const col = parseInt(seatNumber.slice(1));
+      return { row, col };
+    });
+  } catch (error) {
+    console.error("Error fetching booked seats:", error);
+  }
+};
+
+// Fetch booked seats when component mounts
+onMounted(fetchBookedSeats);
+
 const theaterName = computed(() => {
   const theaters = [
     { id: 1, name: "Cineplex Downtown" },
@@ -257,22 +380,18 @@ const theaterName = computed(() => {
 });
 
 // Seat selection logic
-const PRICE_PER_SEAT = 9.99;
+const basePrice = bookingDetails.value.price || 100000; // Default price if not set
+const vipPrice = basePrice * 1.5; // VIP seats cost 50% more
 const VIP_SEAT_ROWS = [1, 2]; // First two rows are VIP
 const selectedSeats = ref<Array<{ row: number; col: number }>>([]);
 const showConfirmDialog = ref(false);
+const showSuccessDialog = ref(false);
 const hoveredSeat = ref(null);
 
-// Mock occupied seats - In real app, this would come from API
-const occupiedSeats = [
-  { row: 3, col: 5 },
-  { row: 3, col: 6 },
-  { row: 4, col: 7 },
-  { row: 4, col: 8 },
-];
-
 const isOccupied = (row: number, col: number) => {
-  return occupiedSeats.some((seat) => seat.row === row && seat.col === col);
+  return occupiedSeats.value.some(
+    (seat) => seat.row === row && seat.col === col
+  );
 };
 
 const isSelected = (row: number, col: number) => {
@@ -316,9 +435,9 @@ const vipSeatsCount = computed(
 );
 
 const totalPrice = computed(() => {
-  const regularPrice = regularSeatsCount.value * PRICE_PER_SEAT;
-  const vipPrice = vipSeatsCount.value * (PRICE_PER_SEAT + 2);
-  return regularPrice + vipPrice;
+  return selectedSeats.value.reduce((total, seat) => {
+    return total + (isVipSeat(seat.row, seat.col) ? vipPrice : basePrice);
+  }, 0);
 });
 
 const formatDateTime = (date: string, time: string) => {
@@ -332,8 +451,8 @@ const isVipSeat = (row: number, col: number) => {
 
 const getSeatPrice = (row: number, col: number) => {
   return isVipSeat(row, col)
-    ? `$${(PRICE_PER_SEAT + 2).toFixed(2)}`
-    : `$${PRICE_PER_SEAT.toFixed(2)}`;
+    ? `Rp ${(basePrice * 1.5).toLocaleString("id-ID")}`
+    : `Rp ${basePrice.toLocaleString("id-ID")}`;
 };
 
 const handleSeatHover = (row: number, col: number) => {
@@ -353,28 +472,42 @@ const confirmBooking = () => {
 const processBooking = async () => {
   try {
     loading.value = true;
-    const formattedSeats = selectedSeats.value.map(
-      (seat) => `${String.fromCharCode(64 + seat.row)}${seat.col}`
-    );
-
-    await bookingApi.createBooking({
-      showTimeId: bookingDetails.value?.showTimeId,
-      seats: formattedSeats,
+    const formattedSeats = selectedSeats.value.map((seat) => {
+      const isVIPSeat = isVipSeat(seat.row, seat.col);
+      return {
+        seatNumber: formatSeatLabel(seat),
+        isVIP: isVIPSeat,
+        price: isVIPSeat ? vipPrice : basePrice,
+      };
     });
 
+    await bookingApi.createBooking({
+      movieId: bookingDetails.value.movieId,
+      theaterId: bookingDetails.value.theaterId,
+      posterUrl: movieDetails.value?.posterUrl || "",
+      showDate: bookingDetails.value.date,
+      showTime: bookingDetails.value.time,
+      seats: formattedSeats,
+      totalPrice: totalPrice.value,
+    });
+
+    // Clear stored booking data
     localStorage.removeItem("movieDetails");
     localStorage.removeItem("bookingDetails");
-    router.push("/my-tickets");
+
+    // Show success dialog
+    showConfirmDialog.value = false;
+    showSuccessDialog.value = true;
   } catch (error) {
     console.error("Error creating booking:", error);
-    const errorMessage =
-      error.response?.data?.error ||
-      "Failed to create booking. Please try again.";
-    alert(errorMessage);
+    alert(error.message || "Failed to create booking. Please try again.");
   } finally {
     loading.value = false;
-    showConfirmDialog.value = false;
   }
+};
+
+const formatPrice = (value: number) => {
+  return value.toLocaleString("id-ID");
 };
 </script>
 
@@ -540,5 +673,11 @@ const processBooking = async () => {
 
 .gap-6 {
   gap: 24px;
+}
+
+.confirmation-dialog,
+.success-dialog {
+  border-radius: 16px;
+  overflow: hidden;
 }
 </style>

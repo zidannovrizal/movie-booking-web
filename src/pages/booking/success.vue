@@ -78,10 +78,10 @@
               color="primary"
               variant="flat"
               size="large"
-              to="/my-bookings"
+              to="/my-tickets"
               class="flex-grow-0"
             >
-              View My Bookings
+              View My Tickets
             </v-btn>
             <v-btn
               variant="outlined"
