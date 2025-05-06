@@ -175,10 +175,12 @@
                   <v-row v-if="calculatePrice" class="mt-4">
                     <v-col cols="12">
                       <div class="text-h6">
-                        Base Price: Rp {{ calculatePrice.toLocaleString() }}
+                        Base Price: $ {{ calculatePrice.toLocaleString() }}
                       </div>
-                      <div class="text-caption">
-                        * Final price may vary based on seat selection
+
+                      <div class="text-caption mt-2">
+                        * Final price may vary based on seat selection and day
+                        of week
                       </div>
                     </v-col>
                   </v-row>

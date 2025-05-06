@@ -28,13 +28,30 @@ export interface User {
 export interface Movie {
   id: number;
   title: string;
-  overview: string;
-  poster_path: string;
-  backdrop_path: string;
-  release_date: string;
-  vote_average: number;
-  runtime?: number;
-  genres?: { id: number; name: string }[];
+  description: string;
+  genres: string;
+  posterUrl: string;
+  backdropUrl: string;
+  releaseDate: string;
+  runtime: number;
+  rating: number;
+  status: MovieStatus;
+  language: string;
+  budget: number;
+  revenue: number;
+  homepage: string | null;
+  productionCompanies: string[];
+  cast?: {
+    id: number;
+    name: string;
+    character: string;
+    profileUrl: string;
+  }[];
+  director: string;
+  trailer?: {
+    key: string;
+    site: string;
+  } | null;
 }
 
 export interface Theater {
@@ -46,24 +63,24 @@ export interface Theater {
   address: string;
   facilities: string[];
   capacity: number;
-  showTimes: string[];
+  showTimes?: string[];
   regularPriceWeekday: number;
   regularPriceWeekend: number;
   vipPriceWeekday: number;
   vipPriceWeekend: number;
+  bookings?: Record<string, string[]>;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface ShowTime {
   id: string;
-  tmdbMovieId: number;
+  movieId: number;
   theaterId: string;
-  startTime: string;
+  date: string;
+  time: string;
   price: number;
-  theater: Theater;
-  createdAt: string;
-  updatedAt: string;
+  availableSeats: number;
 }
 
 export interface Booking {
@@ -83,8 +100,17 @@ export interface Booking {
   updatedAt: string;
 }
 
-export interface CreateMovieDto
-  extends Omit<Movie, "id" | "createdAt" | "updatedAt"> {}
+export interface CreateMovieDto {
+  title: string;
+  description: string;
+  genres: string;
+  posterUrl: string;
+  backdropUrl: string;
+  releaseDate: string;
+  runtime: number;
+  status: MovieStatus;
+}
+
 export interface UpdateMovieDto extends Partial<CreateMovieDto> {}
 
 export interface CreateTheaterDto {

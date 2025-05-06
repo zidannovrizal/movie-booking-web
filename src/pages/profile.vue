@@ -209,9 +209,11 @@ const handleProfilePictureChange = (file: File | null) => {
     return;
   }
 
-  // Create a preview URL for the new image
-  profilePicture.value = URL.createObjectURL(file);
-  newProfilePicture.value = file;
+  // Only create URL if file is valid
+  if (file instanceof File) {
+    profilePicture.value = URL.createObjectURL(file);
+    newProfilePicture.value = file;
+  }
 };
 
 const updateProfile = async () => {

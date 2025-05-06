@@ -64,13 +64,13 @@
                 <div class="d-flex align-center">
                   <div class="seat-demo available"></div>
                   <span class="ml-2 text-body-2"
-                    >Regular (Rp {{ formatPrice(basePrice) }})</span
+                    >Regular ($ {{ formatPrice(basePrice) }})</span
                   >
                 </div>
                 <div class="d-flex align-center">
                   <div class="seat-demo vip"></div>
                   <span class="ml-2 text-body-2"
-                    >VIP (Rp {{ formatPrice(vipPrice) }})</span
+                    >VIP ($ {{ formatPrice(vipPrice) }})</span
                   >
                 </div>
                 <div class="d-flex align-center">
@@ -142,21 +142,19 @@
                     <div class="d-flex justify-space-between mb-2">
                       <span>Regular Seats ({{ regularSeatsCount }})</span>
                       <span
-                        >Rp
+                        >$
                         {{ formatPrice(regularSeatsCount * basePrice) }}</span
                       >
                     </div>
                     <div class="d-flex justify-space-between mb-2">
                       <span>VIP Seats ({{ vipSeatsCount }})</span>
-                      <span
-                        >Rp {{ formatPrice(vipSeatsCount * vipPrice) }}</span
-                      >
+                      <span>$ {{ formatPrice(vipSeatsCount * vipPrice) }}</span>
                     </div>
                     <v-divider class="my-2"></v-divider>
                     <div class="d-flex justify-space-between">
                       <span class="text-h6">Total</span>
                       <span class="text-h6"
-                        >Rp {{ formatPrice(totalPrice) }}</span
+                        >$ {{ formatPrice(totalPrice) }}</span
                       >
                     </div>
                   </div>
@@ -244,7 +242,7 @@
                 <v-icon color="primary">mdi-cash</v-icon>
               </template>
               <v-list-item-title class="text-primary font-weight-bold">
-                Rp {{ formatPrice(totalPrice) }}
+                $ {{ formatPrice(totalPrice) }}
               </v-list-item-title>
               <v-list-item-subtitle>Total Price</v-list-item-subtitle>
             </v-list-item>
@@ -370,9 +368,16 @@ onMounted(fetchBookedSeats);
 
 const theaterName = computed(() => {
   const theaters = [
-    { id: 1, name: "Cineplex Downtown" },
-    { id: 2, name: "IMAX City Center" },
-    { id: 3, name: "MovieMax Mall" },
+    { id: "1", name: "CGV Grand Indonesia" },
+    { id: "2", name: "XXI Plaza Indonesia" },
+    { id: "3", name: "AMC Empire 25" },
+    { id: "4", name: "TCL Chinese Theatre" },
+    { id: "5", name: "Odeon Luxe Leicester Square" },
+    { id: "6", name: "TOHO Cinemas Shinjuku" },
+    { id: "7", name: "CGV Yongsan I'Park Mall" },
+    { id: "8", name: "Event Cinemas George Street" },
+    { id: "9", name: "Shaw Theatres Lido IMAX" },
+    { id: "10", name: "Reel Cinemas The Dubai Mall" },
   ];
   return (
     theaters.find((t) => t.id === bookingDetails.value?.theaterId)?.name || ""
@@ -451,8 +456,8 @@ const isVipSeat = (row: number, col: number) => {
 
 const getSeatPrice = (row: number, col: number) => {
   return isVipSeat(row, col)
-    ? `Rp ${(basePrice * 1.5).toLocaleString("id-ID")}`
-    : `Rp ${basePrice.toLocaleString("id-ID")}`;
+    ? `$ ${(basePrice * 1.5).toLocaleString("id-ID")}`
+    : `$ ${basePrice.toLocaleString("id-ID")}`;
 };
 
 const handleSeatHover = (row: number, col: number) => {

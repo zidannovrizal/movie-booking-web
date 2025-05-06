@@ -25,13 +25,28 @@ export const useMovieStore = defineStore("movies", {
   actions: {
     async fetchMovies() {
       this.loading = true;
+      this.error = null;
       try {
         const response = await movieApi.getAllMovies();
-        console.log("Fetched movies:", response);
         this.movies = response;
       } catch (error) {
         console.error("Error fetching movies:", error.response || error);
         this.error = "Failed to fetch movies";
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async searchMovies(query) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await movieApi.searchMovies(query);
+        return response;
+      } catch (error) {
+        console.error("Error searching movies:", error.response || error);
+        this.error = "Failed to search movies";
+        return [];
       } finally {
         this.loading = false;
       }

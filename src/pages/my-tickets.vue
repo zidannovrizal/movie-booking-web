@@ -94,27 +94,27 @@
 
                   <div class="ticket-info">
                     <div class="info-row">
-                      <span class="info-label">TIX</span>
-                      <span class="info-value"
+                      <span class="info-label card">CODE</span>
+                      <span class="info-value card"
                         >#{{ ticket.id.slice(-8).toUpperCase() }}</span
                       >
                     </div>
                     <div class="info-row">
-                      <span class="info-label">DATE</span>
-                      <span class="info-value"
+                      <span class="info-label card">DATE</span>
+                      <span class="info-value card"
                         >{{ formatDateIndo(ticket.showDate) }} •
                         {{ ticket.showTime }}</span
                       >
                     </div>
                     <div class="info-row">
-                      <span class="info-label">VENUE</span>
-                      <span class="info-value text-truncate">{{
+                      <span class="info-label card">VENUE</span>
+                      <span class="info-value card">{{
                         ticket.theater.name
                       }}</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">SEAT</span>
-                      <span class="info-value">{{
+                      <span class="info-label card">SEAT</span>
+                      <span class="info-value card">{{
                         ticket.seats.join(", ")
                       }}</span>
                     </div>
@@ -134,7 +134,7 @@
               <div class="ticket-footer">
                 <div class="ticket-price">
                   <span class="text-primary font-weight-medium"
-                    >Rp {{ formatPrice(ticket.totalPrice) }}</span
+                    >$ {{ formatPrice(ticket.totalPrice) }}</span
                   >
                 </div>
               </div>
@@ -149,121 +149,152 @@
     </v-container>
 
     <!-- Ticket Detail Dialog -->
-    <v-dialog v-model="showDetailDialog" max-width="400">
+    <v-dialog v-model="showDetailDialog" max-width="1000">
       <v-card v-if="selectedTicket" class="ticket-detail">
-        <!-- Header -->
-        <div class="detail-header pa-4">
-          <div class="d-flex justify-space-between align-center mb-4">
-            <div
-              class="status-badge"
-              :class="selectedTicket.status.toLowerCase()"
-            >
-              {{ selectedTicket.status }}
-            </div>
-            <v-btn
-              icon="mdi-close"
-              variant="text"
-              size="small"
-              @click="showDetailDialog = false"
-            ></v-btn>
-          </div>
-
-          <div class="d-flex align-start gap-3">
+        <div class="d-flex">
+          <!-- Left Section: Movie Poster -->
+          <div class="poster-section">
             <v-img
               :src="selectedTicket.moviePoster"
-              width="100"
-              aspect-ratio="2/3"
+              :lazy-src="'/images/no-poster.png'"
+              height="100%"
               cover
-              class="rounded-lg"
-            ></v-img>
-            <div class="flex-grow-1">
-              <h2 class="text-h6 font-weight-bold mb-1">
-                {{ selectedTicket.movieTitle }}
-              </h2>
-              <div class="text-medium-emphasis">
-                {{ selectedTicket.theater.name }}
+            >
+              <template v-slot:placeholder>
+                <v-row class="fill-height ma-0" align="center" justify="center">
+                  <v-progress-circular
+                    indeterminate
+                    color="primary"
+                  ></v-progress-circular>
+                </v-row>
+              </template>
+            </v-img>
+          </div>
+
+          <!-- Right Section: Ticket Details -->
+          <div class="details-section">
+            <!-- Header -->
+            <div class="d-flex justify-space-between align-center pa-4">
+              <div class="d-flex align-center">
+                <h2 class="text-h5 font-weight-bold mb-0 mr-4">
+                  {{ selectedTicket.movieTitle }}
+                </h2>
+                <div
+                  class="status-badge"
+                  :class="selectedTicket.status.toLowerCase()"
+                >
+                  {{ selectedTicket.status }}
+                </div>
+              </div>
+              <v-btn
+                icon="mdi-close"
+                variant="text"
+                size="small"
+                @click="showDetailDialog = false"
+              ></v-btn>
+            </div>
+
+            <v-divider></v-divider>
+
+            <!-- Main Content -->
+            <div class="d-flex ticket-main pa-4">
+              <!-- Left Column -->
+              <div class="flex-grow-1 pr-4">
+                <div class="theater-name mb-4 text-body-1">
+                  {{ selectedTicket.theater.name }}
+                </div>
+
+                <div class="ticket-info-grid">
+                  <div class="info-item">
+                    <div>
+                      <div class="info-label">Ticket Code</div>
+                      <div class="info-value">
+                        #{{ selectedTicket.id.slice(-8).toUpperCase() }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div>
+                      <div class="info-label">Show Date</div>
+                      <div class="info-value">
+                        {{ formatDateIndo(selectedTicket.showDate) }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div>
+                      <div class="info-label">Show Time</div>
+                      <div class="info-value">
+                        {{ selectedTicket.showTime }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div>
+                      <div class="info-label">Seats</div>
+                      <div class="info-value">
+                        {{ selectedTicket.seats.join(", ") }}
+                      </div>
+                      <div class="info-sub">
+                        {{
+                          selectedTicket.isVIP ? "VIP Seats" : "Regular Seats"
+                        }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div>
+                      <div class="info-label">Total Price</div>
+                      <div class="info-value text-primary font-weight-bold">
+                        $ {{ formatPrice(selectedTicket.totalPrice) }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2 mt-4 pb-4">
+                  <v-btn
+                    v-if="selectedTicket.status === 'PENDING'"
+                    color="error"
+                    variant="outlined"
+                    prepend-icon="mdi-cash-refund"
+                    @click="cancelBooking(selectedTicket.id)"
+                    :loading="loading"
+                  >
+                    Request Refund
+                  </v-btn>
+                  <v-btn
+                    color="primary"
+                    variant="flat"
+                    prepend-icon="mdi-movie"
+                    :to="`/movies/${selectedTicket.tmdbMovieId}`"
+                  >
+                    Movie Details
+                  </v-btn>
+                </div>
+              </div>
+
+              <!-- Right Column - QR Code -->
+              <div class="qr-section">
+                <div class="qr-container">
+                  <img
+                    :src="selectedTicket.qrCode"
+                    alt="Ticket QR Code"
+                    class="qr-code"
+                  />
+                  <div class="text-caption text-center mt-2">
+                    Scan at theater entrance
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Ticket Details -->
-        <div class="detail-content">
-          <div class="detail-section">
-            <div class="detail-row">
-              <span class="detail-label">TIX</span>
-              <span class="detail-value"
-                >#{{ selectedTicket.id.slice(-8).toUpperCase() }}</span
-              >
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">DATE</span>
-              <span class="detail-value">{{
-                formatDateIndo(selectedTicket.showDate)
-              }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">TIME</span>
-              <span class="detail-value">{{ selectedTicket.showTime }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">SEAT</span>
-              <div>
-                <div class="detail-value">
-                  {{ selectedTicket.seats.join(", ") }}
-                </div>
-                <div class="detail-sub">
-                  {{ selectedTicket.isVIP ? "VIP Seats" : "Regular Seats" }}
-                </div>
-              </div>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">TOTAL</span>
-              <span class="detail-value text-primary font-weight-bold">
-                Rp {{ formatPrice(selectedTicket.totalPrice) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- QR Code -->
-          <div class="qr-section">
-            <img
-              :src="selectedTicket.qrCode"
-              alt="Ticket QR Code"
-              class="detail-qr-code"
-            />
-            <div class="text-caption text-center mt-2">
-              Scan at theater entrance
-            </div>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <v-card-actions class="pa-4">
-          <div class="d-flex flex-column w-100 gap-2">
-            <v-btn
-              v-if="selectedTicket.status === 'PENDING'"
-              class="mb-2"
-              color="error"
-              variant="outlined"
-              block
-              prepend-icon="mdi-cash-refund"
-              @click="cancelBooking(selectedTicket.id)"
-              :loading="loading"
-            >
-              Request Refund
-            </v-btn>
-            <v-btn
-              color="primary"
-              variant="flat"
-              block
-              prepend-icon="mdi-movie"
-              :to="`/movies/${selectedTicket.tmdbMovieId}`"
-            >
-              Movie Details
-            </v-btn>
-          </div>
-        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -571,11 +602,19 @@ onMounted(async () => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   min-width: 45px;
+
+  &.card {
+    color: var(--v-on-surface-variant);
+  }
 }
 
 .info-value {
   font-size: 0.8rem;
   color: var(--v-high-emphasis);
+
+  &.card {
+    color: var(--v-on-surface);
+  }
 }
 
 .info-row {
@@ -668,83 +707,116 @@ onMounted(async () => {
   }
 }
 
-/* Enhanced Detail Dialog Styles */
+/* Revamped Detail Dialog Styles */
 .ticket-detail {
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
+  background: rgb(var(--v-theme-surface));
 }
 
-.detail-header {
-  background: var(--v-surface);
-  border-bottom: 1px solid var(--v-border-color);
-}
+.poster-section {
+  width: 300px;
+  position: relative;
+  background: rgb(18, 18, 18);
+  overflow: hidden;
 
-.detail-content {
-  padding: 16px;
-  background: var(--v-surface);
-}
-
-.detail-section {
-  background: var(--v-surface-variant);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.detail-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(var(--v-border-opacity), 0.12);
-
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  &:first-child {
-    padding-top: 0;
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 8px,
+      rgba(0, 0, 0, 0.05) 8px,
+      rgba(0, 0, 0, 0.05) 16px
+    );
   }
 }
 
-.detail-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--v-medium-emphasis);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  min-width: 45px;
+.details-section {
+  flex: 1;
+  min-width: 0;
+  background: rgb(var(--v-theme-surface));
+  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
-.detail-value {
-  font-size: 0.875rem;
+.theater-name {
+  font-weight: 500;
   color: var(--v-high-emphasis);
 }
 
-.detail-sub {
+.ticket-main {
+  height: 400px;
+  overflow-y: auto;
+}
+
+.ticket-info-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.info-item {
+  padding: 12px;
+  background: rgb(var(--v-theme-surface-variant));
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.info-label {
   font-size: 0.75rem;
-  color: var(--v-medium-emphasis);
+  font-weight: 600;
+  color: rgb(var(--v-theme-on-surface-variant));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  color: rgb(var(--v-theme-on-surface-variant));
+  font-weight: 500;
+}
+
+.info-sub {
+  font-size: 0.75rem;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin-top: 2px;
 }
 
 .qr-section {
-  margin-top: 16px;
-  padding: 16px;
-  background: var(--v-surface-variant);
-  border-radius: 8px;
+  width: 200px;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding-left: 16px;
+  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 
-.detail-qr-code {
+.qr-container {
+  background: rgb(var(--v-theme-surface-variant));
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.qr-code {
   width: 140px;
   height: 140px;
   padding: 8px;
   background: white;
   border-radius: 8px;
   object-fit: contain;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .status-badge {
@@ -756,18 +828,43 @@ onMounted(async () => {
   letter-spacing: 0.5px;
 
   &.confirmed {
-    background-color: rgb(76, 175, 80, 0.15);
+    background-color: rgba(76, 175, 80, 0.15);
     color: rgb(76, 175, 80);
   }
 
   &.pending {
-    background-color: rgb(255, 193, 7, 0.15);
+    background-color: rgba(255, 193, 7, 0.15);
     color: rgb(255, 193, 7);
   }
 
   &.cancelled {
-    background-color: rgb(244, 67, 54, 0.15);
+    background-color: rgba(244, 67, 54, 0.15);
     color: rgb(244, 67, 54);
+  }
+}
+
+.gap-2 {
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .poster-section {
+    width: 200px;
+  }
+
+  .qr-section {
+    width: 160px;
+  }
+
+  .qr-code {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+@media (max-width: 700px) {
+  .poster-section {
+    display: none;
   }
 }
 </style>

@@ -50,12 +50,12 @@
           <!-- Right Section -->
           <div class="nav-right d-flex align-center">
             <!-- Search Button -->
-            <v-btn
+            <!-- <v-btn
               icon="mdi-magnify"
               variant="text"
               class="action-btn search-btn"
               @click="showSearch = true"
-            ></v-btn>
+            ></v-btn> -->
 
             <!-- Auth Section -->
             <template v-if="authStore.isAuthenticated">
@@ -277,7 +277,7 @@
     </v-navigation-drawer>
 
     <!-- Search Dialog -->
-    <v-dialog
+    <!-- <v-dialog
       v-model="showSearch"
       max-width="550"
       transition="dialog-bottom-transition"
@@ -307,7 +307,7 @@
           </v-text-field>
         </v-card-text>
       </v-card>
-    </v-dialog>
+    </v-dialog> -->
   </div>
 </template>
 
@@ -329,9 +329,9 @@ const searchQuery = ref("");
 const isScrolled = ref(false);
 
 const navItems = [
-  { title: "Movies", path: "/movies", icon: "mdi-movie-open" },
-  { title: "Theaters", path: "/theaters", icon: "mdi-theater" },
-  { title: "About", path: "/about", icon: "mdi-information" },
+  // { title: "Movies", path: "/movies", icon: "mdi-movie-open" },
+  // { title: "Theaters", path: "/theaters", icon: "mdi-theater" },
+  // { title: "About", path: "/about", icon: "mdi-information" },
 ];
 
 const userMenuItems = [
@@ -418,6 +418,7 @@ onUnmounted(() => {
   text-transform: none;
   letter-spacing: 0;
   transition: transform 0.3s ease;
+  padding: 0 16px 0 0;
 }
 
 .logo-btn:hover {

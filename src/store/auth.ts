@@ -23,7 +23,6 @@ interface UpdateProfilePayload {
   name: string;
   email: string;
   phoneNumber?: string;
-  profilePicture?: File | null;
 }
 
 interface UpdateProfileResponse {
@@ -115,27 +114,12 @@ export const useAuthStore = defineStore("auth", {
       this.loading = true;
       this.error = null;
       try {
-        console.log("Updating profile with payload:", payload);
-
-        // Send data as JSON instead of FormData since we're not handling file upload yet
         const { data } = await api.put<UpdateProfileResponse>(
           "/api/auth/profile",
-          payload,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+          payload
         );
 
-        console.log("Profile update response:", data);
-
-        // Update the local user state with the new data
-        this.user = {
-          ...this.user,
-          ...data.user,
-        };
-
+        this.user = data.user;
         return data.user;
       } catch (error: any) {
         console.error("Profile update error:", error?.response?.data || error);

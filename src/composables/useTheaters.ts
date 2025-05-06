@@ -35,12 +35,8 @@ export function useTheaters(movieId: string) {
       theaters.value = (response.theaters as ApiTheaterResponse[]).map(
         (theater) => ({
           ...theater,
-          regularPriceWeekday: 100000, // Default prices in IDR
-          regularPriceWeekend: 120000,
-          vipPriceWeekday: 150000,
-          vipPriceWeekend: 180000,
-          showTimes: ["11:00", "14:00", "17:00", "20:00"], // Default show times
           bookings: theater.bookings || {},
+          showTimes: theater.showTimes || ["11:00", "14:00", "17:00", "20:00"], // Fallback show times if not provided
         })
       );
     } catch (err: any) {
@@ -108,9 +104,16 @@ export function useTheaters(movieId: string) {
     const theater = theaters.value.find((t) => t.id === selectedTheater.value);
     if (!theater) return 0;
 
-    // For now, return a fixed price since the theater model has changed
-    // TODO: Implement dynamic pricing based on the new theater model
-    return isVIP.value ? 150000 : 100000; // Default prices in IDR
+    const selectedMoment = moment(selectedDate.value);
+    const isWeekend = [0, 6].includes(selectedMoment.day()); // 0 is Sunday, 6 is Saturday
+
+    if (isVIP.value) {
+      return isWeekend ? theater.vipPriceWeekend : theater.vipPriceWeekday;
+    } else {
+      return isWeekend
+        ? theater.regularPriceWeekend
+        : theater.regularPriceWeekday;
+    }
   });
 
   // Check if booking is possible
