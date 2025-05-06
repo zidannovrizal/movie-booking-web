@@ -3,79 +3,149 @@
     <v-container class="py-8">
       <v-row justify="center">
         <v-col cols="12" md="9">
-          <v-card class="seat-selection-card">
+          <!-- Skeleton Loading -->
+          <template v-if="loading">
+            <v-card class="seat-selection-card">
+              <div class="movie-info-header">
+                <div class="movie-info-backdrop"></div>
+                <div class="movie-info-content pa-6">
+                  <v-row align="center" no-gutters>
+                    <v-col cols="12" sm="auto" class="movie-poster-col">
+                      <v-skeleton-loader
+                        type="image"
+                        height="300"
+                        width="200"
+                      ></v-skeleton-loader>
+                    </v-col>
+                    <v-col cols="12" sm class="movie-details-col">
+                      <v-skeleton-loader
+                        type="article"
+                        class="mt-4"
+                      ></v-skeleton-loader>
+                    </v-col>
+                  </v-row>
+                </div>
+              </div>
+              <v-divider></v-divider>
+              <div class="seat-selection-area pa-6">
+                <v-skeleton-loader
+                  type="article"
+                  class="mb-8"
+                ></v-skeleton-loader>
+                <v-skeleton-loader
+                  type="table"
+                  class="mb-8"
+                ></v-skeleton-loader>
+              </div>
+            </v-card>
+          </template>
+
+          <v-card v-else class="seat-selection-card">
             <!-- Movie Info Header -->
-            <div class="movie-info-header pa-6">
-              <v-row align="center">
-                <v-col cols="12" sm="3">
-                  <v-img
-                    :src="movieDetails?.posterUrl || '/images/no-poster.png'"
-                    :aspect-ratio="2 / 3"
-                    cover
-                    class="movie-poster rounded-lg"
-                  ></v-img>
-                </v-col>
-                <v-col cols="12" sm="9">
-                  <h2 class="text-h4 font-weight-bold mb-2">
-                    {{ movieDetails?.title }}
-                  </h2>
-                  <div class="d-flex align-center flex-wrap mb-2">
-                    <v-chip
-                      v-for="genre in movieDetails?.genres?.split(',')"
-                      :key="genre"
-                      color="primary"
-                      variant="flat"
-                      size="small"
-                      class="mr-2 mb-2"
+            <div class="movie-info-header">
+              <div class="movie-info-backdrop"></div>
+              <div class="movie-info-content pa-6">
+                <v-row align="center" no-gutters>
+                  <v-col cols="12" sm="auto" class="movie-poster-col">
+                    <v-img
+                      :src="movieDetails?.posterUrl || '/images/no-poster.png'"
+                      :aspect-ratio="2 / 3"
+                      cover
+                      class="movie-poster"
+                      width="200"
                     >
-                      {{ genre.trim() }}
-                    </v-chip>
-                  </div>
-                  <div class="text-body-1 text-medium-emphasis mb-1">
-                    <v-icon size="small" class="mr-1">mdi-calendar</v-icon>
-                    {{
-                      formatDateTime(bookingDetails?.date, bookingDetails?.time)
-                    }}
-                  </div>
-                  <div class="text-body-1 text-medium-emphasis">
-                    <v-icon size="small" class="mr-1">mdi-theater</v-icon>
-                    {{ theaterName }}
-                  </div>
-                </v-col>
-              </v-row>
+                      <template v-slot:placeholder>
+                        <div
+                          class="d-flex align-center justify-center fill-height"
+                        >
+                          <v-progress-circular
+                            indeterminate
+                            color="primary"
+                          ></v-progress-circular>
+                        </div>
+                      </template>
+                    </v-img>
+                  </v-col>
+                  <v-col cols="12" sm class="movie-details-col">
+                    <div class="d-flex flex-column h-100">
+                      <h2 class="text-h3 font-weight-bold mb-2">
+                        {{ movieDetails?.title }}
+                      </h2>
+                      <div class="d-flex align-center flex-wrap mb-4 gap-2">
+                        <v-chip
+                          v-for="genre in movieDetails?.genres?.split(',')"
+                          :key="genre"
+                          color="primary"
+                          variant="elevated"
+                          size="small"
+                          class="font-weight-medium"
+                        >
+                          {{ genre.trim() }}
+                        </v-chip>
+                      </div>
+                      <div class="movie-info-meta mb-4">
+                        <div class="d-flex align-center mb-2">
+                          <v-icon size="20" color="primary" class="mr-2"
+                            >mdi-calendar-clock</v-icon
+                          >
+                          <span class="text-body-1 font-weight-medium">
+                            {{
+                              formatDateTime(
+                                bookingDetails?.date,
+                                bookingDetails?.time
+                              )
+                            }}
+                          </span>
+                        </div>
+                        <div class="d-flex align-center">
+                          <v-icon size="20" color="primary" class="mr-2"
+                            >mdi-theater</v-icon
+                          >
+                          <span class="text-body-1 font-weight-medium">{{
+                            theaterName
+                          }}</span>
+                        </div>
+                      </div>
+                      <div class="booking-progress">
+                        <div
+                          class="d-flex align-center justify-space-between mb-2"
+                        >
+                          <span class="text-subtitle-1 font-weight-medium"
+                            >Booking Progress</span
+                          >
+                          <span class="text-caption">Step 2 of 3</span>
+                        </div>
+                        <v-progress-linear
+                          color="primary"
+                          height="8"
+                          rounded
+                          :model-value="66"
+                          class="booking-progress-bar"
+                        ></v-progress-linear>
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
             </div>
 
             <v-divider></v-divider>
 
             <!-- Seat Selection Area -->
             <div class="seat-selection-area pa-6">
-              <!-- Screen -->
-              <div class="screen-container mb-12">
-                <div class="screen">
-                  <span class="screen-text">SCREEN</span>
-                </div>
-                <div class="screen-shadow"></div>
-              </div>
-
               <!-- Seat Legend -->
-              <div
-                class="d-flex justify-center align-center mb-8 flex-wrap gap-6"
-              >
-                <div class="d-flex align-center">
-                  <div class="seat-demo available"></div>
+              <div class="d-flex justify-center align-center mb-0">
+                <div class="d-flex align-center mr-8">
+                  <div class="seat-demo regular"></div>
                   <span class="ml-2 text-body-2"
                     >Regular ($ {{ formatPrice(basePrice) }})</span
                   >
                 </div>
-                <div class="d-flex align-center">
+                <div class="d-flex align-center mr-8">
                   <div class="seat-demo vip"></div>
                   <span class="ml-2 text-body-2"
                     >VIP ($ {{ formatPrice(vipPrice) }})</span
                   >
-                </div>
-                <div class="d-flex align-center">
-                  <div class="seat-demo selected"></div>
-                  <span class="ml-2 text-body-2">Selected</span>
                 </div>
                 <div class="d-flex align-center">
                   <div class="seat-demo occupied"></div>
@@ -84,7 +154,7 @@
               </div>
 
               <!-- Seats Grid -->
-              <div class="seats-container mb-8">
+              <div class="seats-container mb-8 pt-16">
                 <div v-for="row in 8" :key="row" class="seat-row">
                   <div class="row-label">
                     {{ String.fromCharCode(64 + row) }}
@@ -114,13 +184,21 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Screen -->
+              <div class="screen-container mb-6">
+                <div class="screen">
+                  <span class="screen-text">SCREEN</span>
+                </div>
+                <div class="screen-shadow"></div>
+              </div>
             </div>
 
             <!-- Booking Summary -->
             <v-divider></v-divider>
             <div class="booking-summary pa-6">
               <v-row>
-                <v-col cols="12" md="8">
+                <v-col cols="12">
                   <div class="selected-seats mb-4">
                     <h3 class="text-h6 font-weight-medium mb-2">
                       Selected Seats
@@ -138,7 +216,7 @@
                       </v-chip>
                     </div>
                   </div>
-                  <div class="price-breakdown">
+                  <div class="price-breakdown mb-6">
                     <div class="d-flex justify-space-between mb-2">
                       <span>Regular Seats ({{ regularSeatsCount }})</span>
                       <span
@@ -158,8 +236,6 @@
                       >
                     </div>
                   </div>
-                </v-col>
-                <v-col cols="12" md="4" class="d-flex align-center">
                   <v-btn
                     color="primary"
                     block
@@ -302,7 +378,7 @@
               color="primary"
               variant="outlined"
               block
-              to="/movies"
+              to="/"
               prepend-icon="mdi-movie"
             >
               Browse More Movies
@@ -315,14 +391,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import moment from "moment";
 import { bookingApi } from "@/api/bookings";
 
 const route = useRoute();
 const router = useRouter();
-const loading = ref(false);
+const loading = ref(true);
 const error = ref(null);
 
 // Mock data - In real app, these would come from route params/query or store
@@ -346,25 +422,52 @@ const fetchBookedSeats = async () => {
       return;
     }
 
-    const response = await bookingApi.getBookedSeats(
-      bookingDetails.value.theaterId,
-      bookingDetails.value.date,
-      bookingDetails.value.time
-    );
+    const response = await bookingApi.getBookedSeats({
+      theaterId: bookingDetails.value.theaterId,
+      showDate: bookingDetails.value.date,
+      showTime: bookingDetails.value.time,
+      movieId: bookingDetails.value.movieId,
+    });
+
+    // The response.data contains the array of booked seats
+    const bookedSeats = response.data;
+    console.log("Booked seats:", bookedSeats);
 
     // Convert seat numbers (e.g., "A1", "B2") to row and col numbers
-    occupiedSeats.value = response.data.map((seatNumber) => {
+    occupiedSeats.value = bookedSeats.map((seatNumber) => {
       const row = seatNumber.charCodeAt(0) - 64; // Convert A to 1, B to 2, etc.
       const col = parseInt(seatNumber.slice(1));
       return { row, col };
     });
+    console.log("Occupied seats:", occupiedSeats.value);
   } catch (error) {
     console.error("Error fetching booked seats:", error);
   }
 };
 
-// Fetch booked seats when component mounts
-onMounted(fetchBookedSeats);
+// Watch for changes in booking details to refetch occupied seats
+watch(
+  [
+    () => bookingDetails.value?.theaterId,
+    () => bookingDetails.value?.date,
+    () => bookingDetails.value?.time,
+  ],
+  async (newValues, oldValues, onCleanup) => {
+    // Only fetch if we have all required values and something changed
+    if (
+      newValues.every((value) => value) &&
+      newValues.some((value, index) => value !== oldValues[index])
+    ) {
+      loading.value = true;
+      try {
+        await fetchBookedSeats();
+      } finally {
+        loading.value = false;
+      }
+    }
+  },
+  { immediate: true }
+);
 
 const theaterName = computed(() => {
   const theaters = [
@@ -387,16 +490,17 @@ const theaterName = computed(() => {
 // Seat selection logic
 const basePrice = bookingDetails.value.price || 100000; // Default price if not set
 const vipPrice = basePrice * 1.5; // VIP seats cost 50% more
-const VIP_SEAT_ROWS = [1, 2]; // First two rows are VIP
+const VIP_SEAT_ROWS = [1, 2]; // First two rows (A and B) are VIP
 const selectedSeats = ref<Array<{ row: number; col: number }>>([]);
 const showConfirmDialog = ref(false);
 const showSuccessDialog = ref(false);
 const hoveredSeat = ref(null);
 
 const isOccupied = (row: number, col: number) => {
-  return occupiedSeats.value.some(
+  const seatExists = occupiedSeats.value.some(
     (seat) => seat.row === row && seat.col === col
   );
+  return seatExists;
 };
 
 const isSelected = (row: number, col: number) => {
@@ -406,7 +510,9 @@ const isSelected = (row: number, col: number) => {
 };
 
 const toggleSeat = (row: number, col: number) => {
-  if (isOccupied(row, col)) return;
+  if (isOccupied(row, col)) {
+    return; // Early return if seat is occupied
+  }
 
   const seatIndex = selectedSeats.value.findIndex(
     (seat) => seat.row === row && seat.col === col
@@ -447,7 +553,9 @@ const totalPrice = computed(() => {
 
 const formatDateTime = (date: string, time: string) => {
   if (!date || !time) return "";
-  return moment(`${date} ${time}`).format("MMMM D, YYYY [at] h:mm A");
+  return moment(`${date} ${time}`)
+    .locale("en")
+    .format("dddd, MMMM D, YYYY [at] h:mm A");
 };
 
 const isVipSeat = (row: number, col: number) => {
@@ -516,173 +624,394 @@ const formatPrice = (value: number) => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .seat-selection-card {
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  animation: slideUp 0.5s ease-out;
 }
 
 .movie-info-header {
+  position: relative;
+  overflow: hidden;
   background-color: var(--v-surface-variant);
+}
+
+.movie-info-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    var(--v-surface-variant),
+    rgba(var(--v-surface-variant-rgb), 0.9)
+  );
+  backdrop-filter: blur(20px);
+  z-index: 1;
+}
+
+.movie-info-content {
+  position: relative;
+  z-index: 2;
+}
+
+.movie-poster-col {
+  margin-right: 32px;
+  @media (max-width: 600px) {
+    margin-right: 0;
+    margin-bottom: 24px;
+  }
 }
 
 .movie-poster {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 
-.screen-container {
-  position: relative;
-  perspective: 500px;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 800px;
-}
-
-.screen {
-  background: linear-gradient(45deg, #e0e0e0, #ffffff);
-  height: 60px;
-  transform: rotateX(-30deg);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-}
-
-.screen-text {
-  color: #9e9e9e;
-  font-size: 0.8rem;
-  letter-spacing: 4px;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-}
-
-.screen-shadow {
-  position: absolute;
-  bottom: -20px;
-  left: 0;
-  right: 0;
-  height: 20px;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent);
-}
-
-.seats-container {
-  max-width: 800px;
-  margin: 0 auto;
-  overflow-x: auto;
-}
-
-.seat-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.row-label {
-  width: 30px;
-  text-align: center;
-  font-weight: 500;
-  color: var(--v-medium-emphasis);
-}
-
-.seat {
-  width: 35px;
-  height: 35px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  background-color: var(--v-surface-variant);
-  transition: all 0.2s ease;
-
-  &:hover:not(.occupied) {
-    transform: scale(1.1);
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
   }
+}
 
-  &.occupied {
-    background-color: var(--v-disabled);
-    cursor: not-allowed;
-  }
+.movie-details-col {
+  @media (max-width: 600px) {
+    text-align: center;
 
-  &.selected {
-    background-color: var(--v-primary);
-    color: white;
-  }
+    .d-flex {
+      justify-content: center;
+    }
 
-  &.vip {
-    background-color: #ffd700;
-    color: #000;
-
-    &.selected {
-      background-color: var(--v-primary);
-      color: white;
+    .movie-info-meta {
+      justify-content: center;
     }
   }
 }
 
-.seat-number {
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.seat-tooltip {
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-}
-
-.seat-demo {
-  width: 25px;
-  height: 25px;
-  border-radius: 6px;
-  margin-right: 8px;
-
-  &.available {
-    background-color: var(--v-surface-variant);
-  }
-
-  &.selected {
-    background-color: var(--v-primary);
-  }
-
-  &.occupied {
-    background-color: var(--v-disabled);
-  }
-
-  &.vip {
-    background-color: #ffd700;
+.movie-info-meta {
+  .v-icon {
+    opacity: 0.9;
   }
 }
 
-.booking-summary {
-  background-color: var(--v-surface-variant);
-}
+.booking-progress {
+  margin-top: auto;
+  padding-top: 24px;
 
-.selected-seats {
-  min-height: 80px;
+  .booking-progress-bar {
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 600px) {
+    margin-top: 24px;
+  }
 }
 
 .gap-2 {
   gap: 8px;
 }
 
-.gap-6 {
-  gap: 24px;
+.screen-container {
+  position: relative;
+  perspective: 700px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 800px;
+  transition: all 0.5s ease;
+}
+
+.screen {
+  background: linear-gradient(45deg, #e0e0e0, #ffffff);
+  height: 80px;
+  transform: rotateX(35deg);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.5s ease;
+
+  &:hover {
+    transform: rotateX(40deg);
+    box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.screen-text {
+  color: #757575;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 8px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+
+.screen-shadow {
+  position: absolute;
+  top: -30px;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.15), transparent);
+  transition: all 0.5s ease;
+}
+
+.seats-container {
+  max-width: 900px;
+  margin: 0 auto;
+  overflow-x: auto;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--v-primary) transparent;
+  position: relative;
+  z-index: 1;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--v-primary);
+    border-radius: 3px;
+  }
+}
+
+.seat-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out forwards;
+  position: relative;
+}
+
+@for $i from 1 through 8 {
+  .seat-row:nth-child(#{$i}) {
+    animation-delay: #{$i * 0.1}s;
+  }
+}
+
+.row-label {
+  width: 35px;
+  height: 35px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--v-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(var(--v-primary-rgb), 0.1);
+}
+
+.seat {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  background: linear-gradient(135deg, #4caf50, #43a047);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid #43a047;
+  will-change: transform;
+
+  &:hover:not(.occupied) {
+    transform: scale(1.15) translateY(-5px);
+    box-shadow: 0 8px 16px rgba(76, 175, 80, 0.3);
+    z-index: 10;
+  }
+
+  &.occupied {
+    background: linear-gradient(135deg, #ff5252, #ff1744) !important;
+    cursor: not-allowed;
+    border-color: #ff1744 !important;
+    color: white !important;
+    opacity: 0.9;
+    transform: none !important;
+    box-shadow: none !important;
+
+    &:hover {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    &.vip {
+      background: linear-gradient(135deg, #ff5252, #ff1744) !important;
+      border-color: #ff1744 !important;
+      color: white !important;
+    }
+  }
+
+  &.selected {
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    border-color: #1976d2;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(33, 150, 243, 0.3);
+  }
+
+  &.vip {
+    background: linear-gradient(135deg, #ffd700, #ffb700);
+    color: #000;
+    border: 2px solid #ffb700;
+
+    &:hover:not(.occupied) {
+      border-color: #ffa000;
+      box-shadow: 0 8px 16px rgba(255, 183, 0, 0.3);
+    }
+
+    &.selected {
+      background: linear-gradient(135deg, #f57c00, #ef6c00);
+      border-color: #ef6c00;
+      color: white;
+      box-shadow: 0 6px 12px rgba(245, 124, 0, 0.3);
+    }
+  }
+}
+
+.seat-number {
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.seat-tooltip {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  animation: fadeInUp 0.2s ease-out forwards;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+  pointer-events: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+}
+
+.seat-demo {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  margin-right: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  &.regular {
+    background: linear-gradient(135deg, #4caf50, #43a047);
+    border: 2px solid #43a047;
+  }
+
+  &.vip {
+    background: linear-gradient(135deg, #ffd700, #ffb700);
+    border: 2px solid #ffb700;
+  }
+
+  &.occupied {
+    background: linear-gradient(135deg, #ff5252, #ff1744);
+    border: 2px solid #ff1744;
+    opacity: 0.9;
+  }
+}
+
+.booking-summary {
+  background: linear-gradient(
+    to right,
+    var(--v-surface-variant),
+    rgba(var(--v-surface-variant-rgb), 0.9)
+  );
+  backdrop-filter: blur(10px);
+  padding: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.selected-seats {
+  min-height: 90px;
+  transition: all 0.3s ease;
 }
 
 .confirmation-dialog,
 .success-dialog {
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 </style>

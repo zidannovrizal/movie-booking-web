@@ -58,93 +58,103 @@
             ></v-btn> -->
 
             <!-- Auth Section -->
-            <template v-if="authStore.isAuthenticated">
-              <v-menu
-                v-model="userMenu"
-                :close-on-content-click="false"
-                location="bottom end"
-                transition="slide-y-transition"
-                :offset="8"
-              >
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    class="user-profile-btn ml-2"
-                    v-bind="props"
-                    :loading="authStore.loading"
-                  >
-                    <v-avatar size="32" class="user-avatar mr-2">
-                      <span class="text-subtitle-2 font-weight-medium">
-                        {{ getUserInitials(authStore.user?.name) }}
-                      </span>
-                    </v-avatar>
-                    <span class="d-none d-sm-block user-name">
-                      {{ authStore.user?.name }}
-                    </span>
-                    <v-icon size="20" class="ml-1">
-                      {{ userMenu ? "mdi-chevron-up" : "mdi-chevron-down" }}
-                    </v-icon>
-                  </v-btn>
-                </template>
-
-                <v-card class="user-menu" elevation="3">
-                  <v-list>
-                    <v-list-item
-                      v-for="item in userMenuItems"
-                      :key="item.title"
-                      :to="item.path"
-                      :prepend-icon="item.icon"
-                      :active="route.path === item.path"
-                      class="user-menu-item"
-                      @click="userMenu = false"
-                    >
-                      <v-list-item-title>{{ item.title }}</v-list-item-title>
-                    </v-list-item>
-                    <v-divider class="my-2"></v-divider>
-
-                    <v-list-item
-                      v-if="!authStore.isAuthenticated"
-                      to="/auth/login"
-                    >
-                      <template v-slot:prepend>
-                        <v-icon>mdi-login</v-icon>
-                      </template>
-                      <v-list-item-title>Sign In</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item
-                      v-if="!authStore.isAuthenticated"
-                      to="/auth/signup"
-                    >
-                      <template v-slot:prepend>
-                        <v-icon>mdi-account-plus</v-icon>
-                      </template>
-                      <v-list-item-title>Sign Up</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item
-                      v-if="authStore.isAuthenticated"
-                      @click="handleLogout"
-                    >
-                      <template v-slot:prepend>
-                        <v-icon>mdi-logout</v-icon>
-                      </template>
-                      <v-list-item-title>Sign Out</v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-card>
-              </v-menu>
+            <template v-if="authStore.loading">
+              <v-progress-circular
+                indeterminate
+                color="primary"
+                size="24"
+                class="mr-2"
+              ></v-progress-circular>
             </template>
             <template v-else>
-              <div class="auth-buttons">
-                <v-btn
-                  variant="text"
-                  to="/auth/login"
-                  class="auth-btn login-btn"
+              <template v-if="authStore.isAuthenticated">
+                <v-menu
+                  v-model="userMenu"
+                  :close-on-content-click="false"
+                  location="bottom end"
+                  transition="slide-y-transition"
+                  :offset="8"
                 >
-                  Login
-                </v-btn>
-                <v-btn to="/auth/signup" class="auth-btn signup-btn ml-2">
-                  Sign Up
-                </v-btn>
-              </div>
+                  <template v-slot:activator="{ props }">
+                    <v-btn
+                      class="user-profile-btn ml-2"
+                      v-bind="props"
+                      :loading="authStore.loading"
+                    >
+                      <v-avatar size="32" class="user-avatar mr-2">
+                        <span class="text-subtitle-2 font-weight-medium">
+                          {{ getUserInitials(authStore.user?.name) }}
+                        </span>
+                      </v-avatar>
+                      <span class="d-none d-sm-block user-name">
+                        {{ authStore.user?.name }}
+                      </span>
+                      <v-icon size="20" class="ml-1">
+                        {{ userMenu ? "mdi-chevron-up" : "mdi-chevron-down" }}
+                      </v-icon>
+                    </v-btn>
+                  </template>
+
+                  <v-card class="user-menu" elevation="3">
+                    <v-list>
+                      <v-list-item
+                        v-for="item in userMenuItems"
+                        :key="item.title"
+                        :to="item.path"
+                        :prepend-icon="item.icon"
+                        :active="route.path === item.path"
+                        class="user-menu-item"
+                        @click="userMenu = false"
+                      >
+                        <v-list-item-title>{{ item.title }}</v-list-item-title>
+                      </v-list-item>
+                      <v-divider class="my-2"></v-divider>
+
+                      <v-list-item
+                        v-if="!authStore.isAuthenticated"
+                        to="/auth/login"
+                      >
+                        <template v-slot:prepend>
+                          <v-icon>mdi-login</v-icon>
+                        </template>
+                        <v-list-item-title>Sign In</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item
+                        v-if="!authStore.isAuthenticated"
+                        to="/auth/signup"
+                      >
+                        <template v-slot:prepend>
+                          <v-icon>mdi-account-plus</v-icon>
+                        </template>
+                        <v-list-item-title>Sign Up</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item
+                        v-if="authStore.isAuthenticated"
+                        @click="handleLogout"
+                      >
+                        <template v-slot:prepend>
+                          <v-icon>mdi-logout</v-icon>
+                        </template>
+                        <v-list-item-title>Sign Out</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-card>
+                </v-menu>
+              </template>
+              <template v-else>
+                <div class="auth-buttons">
+                  <v-btn
+                    variant="text"
+                    to="/auth/login"
+                    class="auth-btn login-btn"
+                  >
+                    Login
+                  </v-btn>
+                  <v-btn to="/auth/signup" class="auth-btn signup-btn ml-2">
+                    Sign Up
+                  </v-btn>
+                </div>
+              </template>
             </template>
 
             <!-- Theme Toggle -->

@@ -6,12 +6,64 @@
       <h1 class="text-h4 font-weight-bold mb-6">My Tickets</h1>
 
       <!-- Loading State -->
-      <div v-if="loading" class="d-flex justify-center py-12">
-        <v-progress-circular
-          indeterminate
-          color="primary"
-          size="64"
-        ></v-progress-circular>
+      <div v-if="loading">
+        <v-row>
+          <v-col v-for="i in 3" :key="i" cols="12" sm="6" lg="4">
+            <v-card class="ticket-wrapper">
+              <div class="ticket">
+                <div class="ticket-main">
+                  <!-- Poster Skeleton -->
+                  <div class="ticket-poster">
+                    <v-skeleton-loader
+                      type="image"
+                      height="100%"
+                    ></v-skeleton-loader>
+                  </div>
+
+                  <!-- Content Skeleton -->
+                  <div class="ticket-content">
+                    <div class="ticket-header">
+                      <v-skeleton-loader
+                        type="text"
+                        class="mb-2"
+                      ></v-skeleton-loader>
+                    </div>
+
+                    <div class="ticket-info">
+                      <div class="info-row" v-for="j in 4" :key="j">
+                        <v-skeleton-loader
+                          type="text"
+                          width="40"
+                        ></v-skeleton-loader>
+                        <v-skeleton-loader
+                          type="text"
+                          width="120"
+                        ></v-skeleton-loader>
+                      </div>
+                    </div>
+
+                    <div class="ticket-qr">
+                      <v-skeleton-loader
+                        type="image"
+                        width="60"
+                        height="60"
+                      ></v-skeleton-loader>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Footer Skeleton -->
+                <div class="ticket-footer">
+                  <v-skeleton-loader type="text" width="80"></v-skeleton-loader>
+                </div>
+
+                <!-- Decorative Elements -->
+                <div class="ticket-tear-left"></div>
+                <div class="ticket-tear-right"></div>
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
       </div>
 
       <!-- Empty State -->
@@ -84,6 +136,7 @@
                         {{ ticket.movieTitle }}
                       </h3>
                       <div
+                        v-if="ticket.status === 'CANCELLED'"
                         class="status-chip"
                         :class="ticket.status.toLowerCase()"
                       >
@@ -180,6 +233,7 @@
                   {{ selectedTicket.movieTitle }}
                 </h2>
                 <div
+                  v-if="selectedTicket.status !== 'CANCELLED'"
                   class="status-badge"
                   :class="selectedTicket.status.toLowerCase()"
                 >
@@ -307,6 +361,21 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+    <!-- Success Snackbar -->
+    <v-snackbar
+      v-model="showSuccess"
+      color="success"
+      timeout="3000"
+      location="top"
+    >
+      {{ successMessage }}
+      <template v-slot:actions>
+        <v-btn color="white" variant="text" @click="showSuccess = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
@@ -328,6 +397,8 @@ const showError = ref(false);
 const errorMessage = ref("");
 const showDetailDialog = ref(false);
 const selectedTicket = ref(null);
+const showSuccess = ref(false);
+const successMessage = ref("");
 
 // Modify the formattedTickets computed property to use posterUrl directly
 const formattedTickets = computed(() => {
@@ -402,21 +473,30 @@ const generateQRCode = async (ticket: any) => {
 
 const cancelBooking = async (id: string) => {
   try {
+    loading.value = true;
     await bookingApi.cancelBooking(id);
+
+    // Close the detail dialog
+    showDetailDialog.value = false;
+
     // Refresh the tickets list
     const response = await bookingApi.getUserBookings();
-    tickets.value = response.data;
-
-    // Regenerate QR codes
     tickets.value = await Promise.all(
-      tickets.value.map(async (ticket) => ({
+      response.data.map(async (ticket) => ({
         ...ticket,
         qrCode: await generateQRCode(ticket),
       }))
     );
+
+    // Show success message
+    showSuccess.value = true;
+    successMessage.value = "Booking cancelled successfully";
   } catch (error) {
     console.error("Error cancelling booking:", error);
     showError.value = true;
+    errorMessage.value = "Failed to cancel booking. Please try again.";
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -435,45 +515,27 @@ const isExpired = (ticket) => {
 
 const formatDateIndo = (date: string) => {
   if (!date) return "";
-  const days = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "Mei",
-    "Jun",
-    "Jul",
-    "Ags",
-    "Sep",
-    "Okt",
-    "Nov",
-    "Des",
-  ];
-
-  const d = new Date(date);
-  const day = days[d.getDay()];
-  const dateNum = d.getDate();
-  const month = months[d.getMonth()];
-  const year = d.getFullYear();
-
-  return `${day}, ${dateNum} ${month} ${year}`;
+  return moment(date).format("dddd, MMMM D, YYYY");
 };
 
 onMounted(async () => {
-  if (!authStore.isAuthenticated) {
-    router.push("/auth/login");
-    return;
-  }
-
   try {
     loading.value = true;
-    const response = await bookingApi.getUserBookings();
-    tickets.value = response.data;
 
-    // Generate QR codes
+    // Wait for auth to be initialized before checking
+    await authStore.initialize();
+
+    if (!authStore.isAuthenticated) {
+      router.push({
+        path: "/auth/login",
+        query: { redirect: "/my-tickets" },
+      });
+      return;
+    }
+
+    const response = await bookingApi.getUserBookings();
     tickets.value = await Promise.all(
-      tickets.value.map(async (ticket) => ({
+      response.data.map(async (ticket) => ({
         ...ticket,
         qrCode: await generateQRCode(ticket),
       }))
@@ -866,5 +928,49 @@ onMounted(async () => {
   .poster-section {
     display: none;
   }
+}
+
+/* Skeleton Styles */
+:deep(.v-skeleton-loader__text) {
+  border-radius: 4px;
+}
+
+:deep(.v-skeleton-loader__image) {
+  border-radius: 8px;
+}
+
+.ticket-wrapper :deep(.v-skeleton-loader) {
+  background: transparent;
+}
+
+.ticket-wrapper :deep(.v-skeleton-loader__bone) {
+  background: rgba(var(--v-theme-on-surface), 0.08);
+}
+
+.ticket-wrapper :deep(.v-skeleton-loader__bone::after) {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--v-theme-on-surface), 0.08),
+    transparent
+  );
+}
+
+/* Add animation to skeleton tickets */
+@keyframes skeletonPulse {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.ticket-wrapper {
+  animation: skeletonPulse 2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.2s);
 }
 </style>
